@@ -31,8 +31,11 @@ th{color:var(--muted)}
 .syncbox{background:#eef3ff;border:1px solid #ccd8ff;border-radius:14px;padding:12px;margin-bottom:14px}
 .syncbox strong{display:block;margin-bottom:5px}
 .help{font-size:12px;color:var(--muted);line-height:1.5}
+.tech-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;border:1px solid var(--line);border-radius:11px;padding:9px;background:#fff}
+.tech-choice{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:9px;background:#f7f5f2;font-size:14px;color:var(--ink);margin:0}
+.tech-choice input{width:auto;margin:0;accent-color:var(--accent)}
 @media(max-width:800px){.grid,.metrics{grid-template-columns:1fr 1fr}}
-@media(max-width:520px){.grid,.metrics{grid-template-columns:1fr}.actions button{flex:1}header{align-items:flex-start;flex-direction:column}}
+@media(max-width:520px){.grid,.metrics{grid-template-columns:1fr}.actions button{flex:1}header{align-items:flex-start;flex-direction:column}.tech-picker{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -60,7 +63,20 @@ th{color:var(--muted)}
     <h3>新增收入</h3>
     <div class="grid">
       <div><label>日期</label><input id="iDate" type="date"></div>
-      <div><label>美甲師</label><select id="iTech"><option>Kimi</option><option>Raina</option><option>Zoey</option><option>Tina</option><option>Charisse</option><option>Betty</option><option>Eva</option><option>Cici</option></select></div>
+      <div>
+        <label>美甲師（可複選）</label>
+        <div id="iTech" class="tech-picker">
+          <label class="tech-choice"><input type="checkbox" value="Kimi">Kimi</label>
+          <label class="tech-choice"><input type="checkbox" value="Raina">Raina</label>
+          <label class="tech-choice"><input type="checkbox" value="Zoey">Zoey</label>
+          <label class="tech-choice"><input type="checkbox" value="Tina">Tina</label>
+          <label class="tech-choice"><input type="checkbox" value="Charisse">Charisse</label>
+          <label class="tech-choice"><input type="checkbox" value="Betty">Betty</label>
+          <label class="tech-choice"><input type="checkbox" value="Eva">Eva</label>
+          <label class="tech-choice"><input type="checkbox" value="Cici">Cici</label>
+        </div>
+        <div class="help">同一位客人可勾選 2 位以上美甲師；整張單的收入只會計算一次。</div>
+      </div>
       <div><label>服務金額</label><input id="iAmount" type="number" step="0.01"></div>
       <div><label>Tips</label><input id="iTips" type="number" step="0.01"></div>
       <div><label>付款方式</label><select id="iPay"><option>Zelle</option><option>Cash</option><option>Card</option><option>Gift Card</option></select></div>
@@ -93,7 +109,7 @@ th{color:var(--muted)}
 
   <div class="card">
     <h3>美甲師每日累計</h3>
-    <p class="help">同一天、同一位美甲師的收入會自動合併計算。</p>
+    <p class="help">同一天、同一組美甲師的收入會自動合併計算；多人服務時不會重複計算整張單。</p>
     <div class="tablewrap"><table><thead><tr><th>日期</th><th>美甲師</th><th>服務營收</th><th>Tips</th><th>調整</th><th>每日合計</th><th>筆數</th></tr></thead><tbody id="dailyTechRows"></tbody></table></div>
   </div>
 
@@ -161,10 +177,20 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
 });
 
 function saveLocal(){localStorage.setItem(IN,JSON.stringify(incomes));localStorage.setItem(EX,JSON.stringify(expenses))}
+function getTechs(x){
+ if(Array.isArray(x.techs)&&x.techs.length)return x.techs;
+ if(x.tech)return String(x.tech).split(' + ').map(s=>s.trim()).filter(Boolean);
+ return [];
+}
+function techLabel(x){return getTechs(x).join(' + ')||'-'}
+function selectedTechs(){return [...document.querySelectorAll('#iTech input[type="checkbox"]:checked')].map(x=>x.value)}
+function clearTechSelection(){document.querySelectorAll('#iTech input[type="checkbox"]').forEach(x=>x.checked=false)}
 function addIncome(){
- const amount=+iAmount.value||0,tips=+iTips.value||0,adjust=+iAdjust.value||0;if(!iDate.value||(!amount&&!tips&&!adjust))return alert('請輸入日期和金額');
- incomes.unshift({id:crypto.randomUUID(),date:iDate.value,tech:iTech.value,amount,tips,adjust,pay:iPay.value,service:iService.value.trim(),note:iNote.value.trim()});
- iAmount.value=iTips.value=iAdjust.value=iService.value=iNote.value='';saveLocal();render();
+ const amount=+iAmount.value||0,tips=+iTips.value||0,adjust=+iAdjust.value||0,techs=selectedTechs();
+ if(!iDate.value||(!amount&&!tips&&!adjust))return alert('請輸入日期和金額');
+ if(!techs.length)return alert('請至少選擇 1 位美甲師');
+ incomes.unshift({id:crypto.randomUUID(),date:iDate.value,tech:techs.join(' + '),techs,amount,tips,adjust,pay:iPay.value,service:iService.value.trim(),note:iNote.value.trim()});
+ iAmount.value=iTips.value=iAdjust.value=iService.value=iNote.value='';clearTechSelection();saveLocal();render();
 }
 function addExpense(){
  const amount=+eAmount.value||0;if(!eDate.value||!amount)return alert('請輸入日期和金額');
@@ -177,8 +203,9 @@ function sum(a,f){return a.reduce((s,x)=>s+(+f(x)||0),0)}
 function render(){
  const dailyTech={};
  incomes.forEach(x=>{
-   const key=x.date+'|||'+x.tech;
-   dailyTech[key]??={date:x.date,tech:x.tech,amount:0,tips:0,adjust:0,count:0};
+   const label=techLabel(x);
+   const key=x.date+'|||'+label;
+   dailyTech[key]??={date:x.date,tech:label,amount:0,tips:0,adjust:0,count:0};
    dailyTech[key].amount+=Number(x.amount||0);
    dailyTech[key].tips+=Number(x.tips||0);
    dailyTech[key].adjust+=Number(x.adjust||0);
@@ -188,7 +215,7 @@ function render(){
    .sort((a,b)=>b.date.localeCompare(a.date)||a.tech.localeCompare(b.tech))
    .map(x=>`<tr><td>${x.date}</td><td><b>${x.tech}</b></td><td>${money(x.amount)}</td><td>${money(x.tips)}</td><td>${money(x.adjust)}</td><td><b>${money(x.amount+x.tips+x.adjust)}</b></td><td>${x.count}</td></tr>`)
    .join('')||'<tr><td colspan="7">尚無資料</td></tr>';
- incomeRows.innerHTML=incomes.map(x=>`<tr><td>${x.date}</td><td>${x.tech}</td><td>${x.service||'-'}</td><td>${money(x.amount)}</td><td>${money(x.tips)}</td><td>${money(x.adjust)}</td><td>${x.pay}</td><td><b>${money(x.amount+x.tips+x.adjust)}</b></td><td>${x.note||''}</td><td><button class="bad" onclick="delIncome('${x.id}')">刪除</button></td></tr>`).join('')||'<tr><td colspan="10">尚無資料</td></tr>';
+ incomeRows.innerHTML=incomes.map(x=>`<tr><td>${x.date}</td><td>${techLabel(x)}</td><td>${x.service||'-'}</td><td>${money(x.amount)}</td><td>${money(x.tips)}</td><td>${money(x.adjust)}</td><td>${x.pay}</td><td><b>${money(x.amount+x.tips+x.adjust)}</b></td><td>${x.note||''}</td><td><button class="bad" onclick="delIncome('${x.id}')">刪除</button></td></tr>`).join('')||'<tr><td colspan="10">尚無資料</td></tr>';
  expenseRows.innerHTML=expenses.map(x=>`<tr><td>${x.date}</td><td>${x.type}</td><td>${money(x.amount)}</td><td>${x.note||''}</td><td><button class="bad" onclick="delExpense('${x.id}')">刪除</button></td></tr>`).join('')||'<tr><td colspan="5">尚無資料</td></tr>';
  const d=today(),di=incomes.filter(x=>x.date===d),de=expenses.filter(x=>x.date===d);
  mRevenue.textContent=money(sum(di,x=>x.amount+x.adjust));mTips.textContent=money(sum(di,x=>x.tips));mTotal.textContent=money(sum(di,x=>x.amount+x.tips+x.adjust));mExpense.textContent=money(sum(de,x=>x.amount));
@@ -203,7 +230,7 @@ function render(){
  rRevenue.textContent=money(rev);rTips.textContent=money(tips);rExpense.textContent=money(exp);rProfit.textContent=money(rev-exp);
  const pays={Zelle:0,Cash:0,Card:0,'Gift Card':0};mi.forEach(x=>pays[x.pay]=(pays[x.pay]||0)+x.amount+x.tips+x.adjust);
  payRows.innerHTML=Object.entries(pays).map(([k,v])=>`<tr><td>${k}</td><td style="text-align:right"><b>${money(v)}</b></td></tr>`).join('');
- const tm={};mi.forEach(x=>{tm[x.tech]??={rev:0,tips:0};tm[x.tech].rev+=x.amount+x.adjust;tm[x.tech].tips+=x.tips});
+ const tm={};mi.forEach(x=>{const k=techLabel(x);tm[k]??={rev:0,tips:0};tm[k].rev+=x.amount+x.adjust;tm[k].tips+=x.tips});
  techRows.innerHTML=Object.entries(tm).sort((a,b)=>b[1].rev-a[1].rev).map(([k,v])=>`<tr><td>${k}</td><td>${money(v.rev)}</td><td>Tips ${money(v.tips)}</td></tr>`).join('')||'<tr><td>尚無資料</td></tr>';
 }
 monthPicker.onchange=render;
