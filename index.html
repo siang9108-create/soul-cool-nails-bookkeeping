@@ -139,9 +139,78 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
 
 function saveLocal(){localStorage.setItem(IN,JSON.stringify(incomes));localStorage.setItem(EX,JSON.stringify(expenses))}
 function addIncome(){
- const amount=+iAmount.value||0,tips=+iTips.value||0,adjust=+iAdjust.value||0;if(!iDate.value||(!amount&&!tips&&!adjust))return alert('請輸入日期和金額');
- incomes.unshift({id:crypto.randomUUID(),date:iDate.value,tech:iTech.value,amount,tips,adjust,pay:iPay.value,service:iService.value.trim(),note:iNote.value.trim()});
- iAmount.value=iTips.value=iAdjust.value=iService.value=iNote.value='';saveLocal();render();
+  const date = iDate.value;
+  const tech = iTech.value;
+  const amount = +iAmount.value || 0;
+  const tips = +iTips.value || 0;
+
+  const discount = Math.abs(+iAdjust.value || 0);
+  const adjust = -discount;
+
+  const payments = {
+    Zelle: +pZelle.value || 0,
+    Cash: +pCash.value || 0,
+    Card: +pCard.value || 0,
+    "Gift Card": +pGift.value || 0,
+    Kimi: +pKimi.value || 0,
+    Siang: +pSiang.value || 0
+  };
+
+  const payTotal = Object.values(payments)
+    .reduce((a,b) => a + b, 0);
+
+  const total = amount + tips + adjust;
+
+  if(!date || !tech){
+    return alert("請選日期和美甲師");
+  }
+
+  if(!amount && !tips && !payTotal){
+    return alert("請輸入金額");
+  }
+
+  if(Math.abs(payTotal - total) > 0.01){
+    return alert(
+      "付款總額 $" + payTotal.toFixed(2) +
+      " 與應收 $" + total.toFixed(2) +
+      " 不一致"
+    );
+  }
+
+  const pay = Object.entries(payments)
+    .filter(([name,value]) => value > 0)
+    .map(([name,value]) => name + " $" + value.toFixed(2))
+    .join(" + ");
+
+  incomes.unshift({
+    id: crypto.randomUUID(),
+    date,
+    tech,
+    amount,
+    tips,
+    adjust,
+    payments,
+    pay,
+    service: iService.value.trim(),
+    note: iNote.value.trim()
+  });
+
+  iAmount.value = "";
+  iTips.value = "";
+  iAdjust.value = "";
+
+  pZelle.value = "";
+  pCash.value = "";
+  pCard.value = "";
+  pGift.value = "";
+  pKimi.value = "";
+  pSiang.value = "";
+
+  iService.value = "";
+  iNote.value = "";
+
+  saveLocal();
+  render();
 }
 function addExpense(){
  const amount=+eAmount.value||0;if(!eDate.value||!amount)return alert('請輸入日期和金額');
