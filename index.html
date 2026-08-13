@@ -27,8 +27,21 @@
       <div><label>美甲師</label><select id="iTech"><option>Kimi</option><option>Raina</option><option>Zoey</option><option>Tina</option><option>Charisse</option><option>Betty</option><option>Eva</option><option>Cici</option></select></div>
       <div><label>服務金額</label><input id="iAmount" type="number" step="0.01"></div>
       <div><label>Tips</label><input id="iTips" type="number" step="0.01"></div>
-      <div><label>付款方式</label><select id="iPay"><option>Zelle</option><option>Cash</option><option>Card</option><option>Gift Card</option></select></div>
-      <div><label>折扣 / 調整</label><input id="iAdjust" type="number" step="0.01" placeholder="-10"></div>
+     
+<div class="pay-split">
+  <b>付款方式（可混合付款）</b>
+
+  <div class="pay-grid">
+    <div><label>Zelle</label><input id="pZelle" type="number" min="0" step="0.01"></div>
+    <div><label>Cash</label><input id="pCash" type="number" min="0" step="0.01"></div>
+    <div><label>Card</label><input id="pCard" type="number" min="0" step="0.01"></div>
+    <div><label>Gift Card</label><input id="pGift" type="number" min="0" step="0.01"></div>
+    <div><label>Kimi</label><input id="pKimi" type="number" min="0" step="0.01"></div>
+    <div><label>Siang</label><input id="pSiang" type="number" min="0" step="0.01"></div>
+    <div><label>折扣</label><input id="iAdjust" type="number" min="0" step="0.01"></div>
+  </div>
+</div>
+      
       <div><label>服務項目</label><input id="iService" placeholder="Gel X / Overlay"></div>
       <div><label>備註</label><input id="iNote" placeholder="例如 20% off"></div>
     </div>
