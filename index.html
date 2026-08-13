@@ -1,63 +1,236 @@
-💅 Soulcool Nails 雲端記帳
-☁️ 尚未連線
-每日
-支出
-月報
-設定
-Google Sheet 同步
-輸入資料後可按「☁️ 同步到雲端」。在另一台手機或 Mac 按「⬇️ 從雲端載入」即可看到同一份帳。
-☁️ 同步到雲端
-⬇️ 從雲端載入
-新增收入
-日期
-美甲師
-KimiRainaZoeyTinaCharisseBettyEvaCici
-服務金額
-Tips
-付款方式
-ZelleCashCardGift Card
-折扣 / 調整
-服務項目
-備註
-加入收入
-今日摘要
-服務營收
-$0
-Tips
-$0
-總收入
-$0
-支出
-$0
-今日付款方式累計
-Zelle
-$0
-Cash
-$0
-Card
-$0
-Gift Card
-$0
-美甲師每日累計
-同一天、同一位美甲師的收入會自動合併計算。
-日期
-美甲師
-服務營收
-Tips
-調整
-每日合計
-筆數
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Soulcool Nails 雲端記帳</title>
+<style>
+:root{--bg:#f7f5f2;--card:#fff;--ink:#242424;--muted:#7d7d7d;--line:#e8e2db;--accent:#3457d5;--good:#16835c;--bad:#cf4040}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
+header{position:sticky;top:0;z-index:5;background:#111;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+h1{font-size:18px;margin:0}.status{font-size:12px;opacity:.85}
+main{max-width:1200px;margin:auto;padding:16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 4px 14px rgba(0,0,0,.035)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:5px}
+input,select{width:100%;padding:11px;border:1px solid var(--line);border-radius:11px;background:#fff;font-size:16px}
+button{border:0;border-radius:11px;padding:11px 14px;font-weight:700;cursor:pointer}
+.primary{background:var(--accent);color:#fff}.good{background:var(--good);color:#fff}.ghost{background:#eee}.bad{background:#ffe8e8;color:var(--bad)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.metric{background:#fafafa;border:1px solid var(--line);border-radius:14px;padding:13px}
+.metric small{color:var(--muted)}.metric b{display:block;font-size:22px;margin-top:4px}
+nav{display:flex;gap:7px;overflow:auto;padding-bottom:3px}
+nav button{background:#2b2b2b;color:#fff;white-space:nowrap}nav button.active{background:#fff;color:#111}
+.page{display:none}.page.active{display:block}
+.tablewrap{overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:780px}
+th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--muted)}
+.syncbox{background:#eef3ff;border:1px solid #ccd8ff;border-radius:14px;padding:12px;margin-bottom:14px}
+.syncbox strong{display:block;margin-bottom:5px}
+.help{font-size:12px;color:var(--muted);line-height:1.5}
+@media(max-width:800px){.grid,.metrics{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.grid,.metrics{grid-template-columns:1fr}.actions button{flex:1}header{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>💅 Soulcool Nails 雲端記帳</h1><div id="cloudStatus" class="status">☁️ 尚未連線</div></div>
+  <nav>
+    <button class="active" data-page="daily">每日</button>
+    <button data-page="expense">支出</button>
+    <button data-page="report">月報</button>
+    <button data-page="settings">設定</button>
+  </nav>
+</header>
+<main>
+<section id="daily" class="page active">
+  <div class="syncbox">
+    <strong>Google Sheet 同步</strong>
+    <div class="help">輸入資料後可按「☁️ 同步到雲端」。在另一台手機或 Mac 按「⬇️ 從雲端載入」即可看到同一份帳。</div>
+    <div class="actions">
+      <button class="good" onclick="syncToCloud()">☁️ 同步到雲端</button>
+      <button class="ghost" onclick="loadFromCloud()">⬇️ 從雲端載入</button>
+    </div>
+  </div>
 
-收入明細
-日期
-美甲師
-服務
-金額
-Tips
-調整
-付款
-合計
-備註
+  <div class="card">
+    <h3>新增收入</h3>
+    <div class="grid">
+      <div><label>日期</label><input id="iDate" type="date"></div>
+      <div><label>美甲師</label><select id="iTech"><option>Kimi</option><option>Raina</option><option>Zoey</option><option>Tina</option><option>Charisse</option><option>Betty</option><option>Eva</option><option>Cici</option></select></div>
+      <div><label>服務金額</label><input id="iAmount" type="number" step="0.01"></div>
+      <div><label>Tips</label><input id="iTips" type="number" step="0.01"></div>
+      <div><label>付款方式</label><select id="iPay"><option>Zelle</option><option>Cash</option><option>Card</option><option>Gift Card</option></select></div>
+      <div><label>折扣 / 調整</label><input id="iAdjust" type="number" step="0.01" placeholder="-10"></div>
+      <div><label>服務項目</label><input id="iService" placeholder="Gel X / Overlay"></div>
+      <div><label>備註</label><input id="iNote" placeholder="例如 20% off"></div>
+    </div>
+    <div class="actions"><button class="primary" onclick="addIncome()">加入收入</button></div>
+  </div>
 
+  <div class="card">
+    <h3>今日摘要</h3>
+    <div class="metrics">
+      <div class="metric"><small>服務營收</small><b id="mRevenue">$0</b></div>
+      <div class="metric"><small>Tips</small><b id="mTips">$0</b></div>
+      <div class="metric"><small>總收入</small><b id="mTotal">$0</b></div>
+      <div class="metric"><small>支出</small><b id="mExpense">$0</b></div>
+    </div>
+  </div>
 
+  <div class="card">
+    <h3>今日付款方式累計</h3>
+    <div class="metrics">
+      <div class="metric"><small>Zelle</small><b id="dZelle">$0</b></div>
+      <div class="metric"><small>Cash</small><b id="dCash">$0</b></div>
+      <div class="metric"><small>Card</small><b id="dCard">$0</b></div>
+      <div class="metric"><small>Gift Card</small><b id="dGiftCard">$0</b></div>
+    </div>
+  </div>
 
+  <div class="card">
+    <h3>美甲師每日累計</h3>
+    <p class="help">同一天、同一位美甲師的收入會自動合併計算。</p>
+    <div class="tablewrap"><table><thead><tr><th>日期</th><th>美甲師</th><th>服務營收</th><th>Tips</th><th>調整</th><th>每日合計</th><th>筆數</th></tr></thead><tbody id="dailyTechRows"></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <h3>收入明細</h3>
+    <div class="tablewrap"><table><thead><tr><th>日期</th><th>美甲師</th><th>服務</th><th>金額</th><th>Tips</th><th>調整</th><th>付款</th><th>合計</th><th>備註</th><th></th></tr></thead><tbody id="incomeRows"></tbody></table></div>
+  </div>
+</section>
+
+<section id="expense" class="page">
+  <div class="card">
+    <h3>新增支出</h3>
+    <div class="grid">
+      <div><label>日期</label><input id="eDate" type="date"></div>
+      <div><label>金額</label><input id="eAmount" type="number" step="0.01"></div>
+      <div><label>分類</label><select id="eType"><option>材料</option><option>設備</option><option>房租</option><option>水電網路</option><option>稅務</option><option>薪資</option><option>其他</option></select></div>
+      <div><label>備註</label><input id="eNote"></div>
+    </div>
+    <div class="actions"><button class="primary" onclick="addExpense()">加入支出</button></div>
+  </div>
+  <div class="card"><h3>支出明細</h3><div class="tablewrap"><table><thead><tr><th>日期</th><th>分類</th><th>金額</th><th>備註</th><th></th></tr></thead><tbody id="expenseRows"></tbody></table></div></div>
+</section>
+
+<section id="report" class="page">
+  <div class="card">
+    <div class="grid">
+      <div><label>月份</label><input id="monthPicker" type="month"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="metrics">
+      <div class="metric"><small>月營收</small><b id="rRevenue">$0</b></div>
+      <div class="metric"><small>月 Tips</small><b id="rTips">$0</b></div>
+      <div class="metric"><small>月支出</small><b id="rExpense">$0</b></div>
+      <div class="metric"><small>月營餘</small><b id="rProfit">$0</b></div>
+    </div>
+  </div>
+  <div class="card"><h3>付款方式</h3><table><tbody id="payRows"></tbody></table></div>
+  <div class="card"><h3>美甲師業績</h3><table><tbody id="techRows"></tbody></table></div>
+</section>
+
+<section id="settings" class="page">
+  <div class="card">
+    <h3>Google Apps Script 連線設定</h3>
+    <label>Apps Script Web App URL</label>
+    <input id="apiUrl" placeholder="https://script.google.com/macros/s/...../exec">
+    <div class="actions">
+      <button class="primary" onclick="saveSettings()">儲存設定</button>
+      <button class="ghost" onclick="testConnection()">測試連線</button>
+    </div>
+    <p class="help">第一次使用需要先把我附上的 Code.gs 貼到 Google Apps Script，部署成 Web App，再把網址貼到這裡。設定只需做一次。</p>
+  </div>
+</section>
+</main>
+
+<script>
+const IN='soulcool_income_cloud_v2', EX='soulcool_expense_cloud_v2', API='soulcool_api_url_v2';
+let incomes=JSON.parse(localStorage.getItem(IN)||'[]'), expenses=JSON.parse(localStorage.getItem(EX)||'[]');
+const $=s=>document.querySelector(s), money=n=>'$'+Number(n||0).toFixed(2), today=()=>new Date().toISOString().slice(0,10);
+iDate.value=today();eDate.value=today();monthPicker.value=today().slice(0,7);apiUrl.value=localStorage.getItem(API)||'';
+
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$('#'+b.dataset.page).classList.add('active');render();
+});
+
+function saveLocal(){localStorage.setItem(IN,JSON.stringify(incomes));localStorage.setItem(EX,JSON.stringify(expenses))}
+function addIncome(){
+ const amount=+iAmount.value||0,tips=+iTips.value||0,adjust=+iAdjust.value||0;if(!iDate.value||(!amount&&!tips&&!adjust))return alert('請輸入日期和金額');
+ incomes.unshift({id:crypto.randomUUID(),date:iDate.value,tech:iTech.value,amount,tips,adjust,pay:iPay.value,service:iService.value.trim(),note:iNote.value.trim()});
+ iAmount.value=iTips.value=iAdjust.value=iService.value=iNote.value='';saveLocal();render();
+}
+function addExpense(){
+ const amount=+eAmount.value||0;if(!eDate.value||!amount)return alert('請輸入日期和金額');
+ expenses.unshift({id:crypto.randomUUID(),date:eDate.value,amount,type:eType.value,note:eNote.value.trim()});
+ eAmount.value=eNote.value='';saveLocal();render();
+}
+function delIncome(id){incomes=incomes.filter(x=>x.id!==id);saveLocal();render()}
+function delExpense(id){expenses=expenses.filter(x=>x.id!==id);saveLocal();render()}
+function sum(a,f){return a.reduce((s,x)=>s+(+f(x)||0),0)}
+function render(){
+ const dailyTech={};
+ incomes.forEach(x=>{
+   const key=x.date+'|||'+x.tech;
+   dailyTech[key]??={date:x.date,tech:x.tech,amount:0,tips:0,adjust:0,count:0};
+   dailyTech[key].amount+=Number(x.amount||0);
+   dailyTech[key].tips+=Number(x.tips||0);
+   dailyTech[key].adjust+=Number(x.adjust||0);
+   dailyTech[key].count++;
+ });
+ dailyTechRows.innerHTML=Object.values(dailyTech)
+   .sort((a,b)=>b.date.localeCompare(a.date)||a.tech.localeCompare(b.tech))
+   .map(x=>`<tr><td>${x.date}</td><td><b>${x.tech}</b></td><td>${money(x.amount)}</td><td>${money(x.tips)}</td><td>${money(x.adjust)}</td><td><b>${money(x.amount+x.tips+x.adjust)}</b></td><td>${x.count}</td></tr>`)
+   .join('')||'<tr><td colspan="7">尚無資料</td></tr>';
+ incomeRows.innerHTML=incomes.map(x=>`<tr><td>${x.date}</td><td>${x.tech}</td><td>${x.service||'-'}</td><td>${money(x.amount)}</td><td>${money(x.tips)}</td><td>${money(x.adjust)}</td><td>${x.pay}</td><td><b>${money(x.amount+x.tips+x.adjust)}</b></td><td>${x.note||''}</td><td><button class="bad" onclick="delIncome('${x.id}')">刪除</button></td></tr>`).join('')||'<tr><td colspan="10">尚無資料</td></tr>';
+ expenseRows.innerHTML=expenses.map(x=>`<tr><td>${x.date}</td><td>${x.type}</td><td>${money(x.amount)}</td><td>${x.note||''}</td><td><button class="bad" onclick="delExpense('${x.id}')">刪除</button></td></tr>`).join('')||'<tr><td colspan="5">尚無資料</td></tr>';
+ const d=today(),di=incomes.filter(x=>x.date===d),de=expenses.filter(x=>x.date===d);
+ mRevenue.textContent=money(sum(di,x=>x.amount+x.adjust));mTips.textContent=money(sum(di,x=>x.tips));mTotal.textContent=money(sum(di,x=>x.amount+x.tips+x.adjust));mExpense.textContent=money(sum(de,x=>x.amount));
+ const dailyPays={Zelle:0,Cash:0,Card:0,'Gift Card':0};
+ di.forEach(x=>dailyPays[x.pay]=(dailyPays[x.pay]||0)+Number(x.amount||0)+Number(x.tips||0)+Number(x.adjust||0));
+ dZelle.textContent=money(dailyPays.Zelle);
+ dCash.textContent=money(dailyPays.Cash);
+ dCard.textContent=money(dailyPays.Card);
+ dGiftCard.textContent=money(dailyPays['Gift Card']);
+ const ym=monthPicker.value,mi=incomes.filter(x=>x.date.startsWith(ym)),me=expenses.filter(x=>x.date.startsWith(ym));
+ const rev=sum(mi,x=>x.amount+x.adjust),tips=sum(mi,x=>x.tips),exp=sum(me,x=>x.amount);
+ rRevenue.textContent=money(rev);rTips.textContent=money(tips);rExpense.textContent=money(exp);rProfit.textContent=money(rev-exp);
+ const pays={Zelle:0,Cash:0,Card:0,'Gift Card':0};mi.forEach(x=>pays[x.pay]=(pays[x.pay]||0)+x.amount+x.tips+x.adjust);
+ payRows.innerHTML=Object.entries(pays).map(([k,v])=>`<tr><td>${k}</td><td style="text-align:right"><b>${money(v)}</b></td></tr>`).join('');
+ const tm={};mi.forEach(x=>{tm[x.tech]??={rev:0,tips:0};tm[x.tech].rev+=x.amount+x.adjust;tm[x.tech].tips+=x.tips});
+ techRows.innerHTML=Object.entries(tm).sort((a,b)=>b[1].rev-a[1].rev).map(([k,v])=>`<tr><td>${k}</td><td>${money(v.rev)}</td><td>Tips ${money(v.tips)}</td></tr>`).join('')||'<tr><td>尚無資料</td></tr>';
+}
+monthPicker.onchange=render;
+
+function saveSettings(){localStorage.setItem(API,apiUrl.value.trim());cloudStatus.textContent='☁️ 已儲存連線設定';alert('連線網址已儲存')}
+function getApi(){const u=localStorage.getItem(API)||apiUrl.value.trim();if(!u){alert('請先到「設定」貼上 Apps Script Web App URL');throw new Error('No API URL')}return u}
+async function testConnection(){
+ try{cloudStatus.textContent='☁️ 測試連線中...';const r=await fetch(getApi()+'?action=ping');const j=await r.json();cloudStatus.textContent=j.ok?'☁️ Google Sheet 已連線':'⚠️ 連線失敗';alert(j.ok?'連線成功！':'連線失敗')}
+ catch(e){cloudStatus.textContent='⚠️ 連線失敗';alert('無法連線，請檢查 Web App URL')}
+}
+async function syncToCloud(){
+ try{
+  cloudStatus.textContent='☁️ 同步中...';
+  const r=await fetch(getApi(),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'saveAll',incomes,expenses})});
+  const j=await r.json();if(!j.ok)throw new Error(j.error||'sync failed');
+  cloudStatus.textContent='☁️ 已同步 '+new Date().toLocaleTimeString();alert('已同步到 Google Sheet');
+ }catch(e){cloudStatus.textContent='⚠️ 同步失敗';alert('同步失敗：'+e.message)}
+}
+async function loadFromCloud(){
+ try{
+  cloudStatus.textContent='☁️ 載入中...';
+  const r=await fetch(getApi()+'?action=loadAll');const j=await r.json();if(!j.ok)throw new Error(j.error||'load failed');
+  incomes=j.incomes||[];expenses=j.expenses||[];saveLocal();render();
+  cloudStatus.textContent='☁️ 已載入 '+new Date().toLocaleTimeString();alert('已從 Google Sheet 載入');
+ }catch(e){cloudStatus.textContent='⚠️ 載入失敗';alert('載入失敗：'+e.message)}
+}
+render();
+</script>
+</body>
+</html>
