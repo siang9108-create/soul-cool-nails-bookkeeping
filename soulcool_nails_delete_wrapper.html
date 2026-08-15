@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+<title>Soulcool Nails 雲端記帳</title>
+<style>
+html,body{margin:0;width:100%;height:100%;background:#f7f5f2}
+#app{border:0;width:100%;height:100vh;display:block}
+</style>
+</head>
+<body>
+<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260814-delete1"></iframe>
+<script>
+const IN='soulcool_income_cloud_v2';
+const EX='soulcool_expense_cloud_v2';
+const API='https://script.google.com/macros/s/AKfycbyW3CPRYyGXYen2lWexTUQySVflMhx2jDs-M7ba9eUX5bGMvgS8VwkXPwv_Wj28Z4QY/exec';
+const app=document.getElementById('app');
+
+function readJson(key){
+  try{return JSON.parse(localStorage.getItem(key)||'[]')}catch(e){return []}
+}
+
+async function saveCloud(incomes,expenses){
+  const r=await fetch(API+'?delete=1&t='+Date.now(),{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({action:'saveAll',incomes,expenses}),
+    cache:'no-store'
+  });
+  const j=await r.json();
+  if(!j.ok)throw new Error(j.error||'同步失敗');
+}
+
+async function deleteIncome(id,button){
+  if(!confirm('確定要刪除這筆收入嗎？'))return;
+  const oldIncomes=readJson(IN);
+  const expenses=readJson(EX);
+  const next=oldIncomes.filter(x=>String(x.id)!==String(id));
+  if(next.length===oldIncomes.length){alert('找不到這筆資料，請先從雲端載入後再試。');return;}
+  button.disabled=true;
+  button.textContent='刪除中…';
+  localStorage.setItem(IN,JSON.stringify(next));
+  try{
+    await saveCloud(next,expenses);
+    alert('已刪除並同步到 Google Sheet');
+    app.contentWindow.location.reload();
+  }catch(e){
+    localStorage.setItem(IN,JSON.stringify(oldIncomes));
+    button.disabled=false;
+    button.textContent='刪除';
+    alert('刪除同步失敗：'+e.message);
+  }
+}
+
+function addDeleteButtons(){
+  let doc;
+  try{doc=app.contentDocument||app.contentWindow.document}catch(e){return}
+  if(!doc)return;
+  const incomes=readJson(IN);
+  const cards=[...doc.querySelectorAll('.day-card')];
+  cards.forEach(card=>{
+    const date=(card.querySelector('b')?.textContent||'').trim();
+    const records=incomes.filter(x=>String(x.date)===date);
+    const entries=[...card.querySelectorAll('.entry')];
+    entries.forEach((entry,i)=>{
+      if(entry.querySelector('.mac-delete-btn'))return;
+      const rec=records[i];
+      if(!rec||!rec.id)return;
+      const btn=doc.createElement('button');
+      btn.className='bad mac-delete-btn';
+      btn.textContent='刪除';
+      btn.style.marginTop='10px';
+      btn.style.display='inline-block';
+      btn.style.padding='9px 14px';
+      btn.style.borderRadius='10px';
+      btn.style.fontWeight='700';
+      btn.style.cursor='pointer';
+      btn.onclick=(ev)=>{ev.preventDefault();ev.stopPropagation();deleteIncome(rec.id,btn)};
+      entry.appendChild(btn);
+    });
+  });
+}
+
+app.addEventListener('load',()=>{
+  addDeleteButtons();
+  try{
+    const doc=app.contentDocument||app.contentWindow.document;
+    const observer=new MutationObserver(()=>addDeleteButtons());
+    observer.observe(doc.documentElement,{childList:true,subtree:true});
+    setTimeout(addDeleteButtons,300);
+    setTimeout(addDeleteButtons,1000);
+  }catch(e){}
+});
+</script>
+</body>
+</html>
