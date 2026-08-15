@@ -1,0 +1,1 @@
+Recovery point before restoring the complete bookkeeping version. Current target features: daily payment totals (Zelle/Cash/Card/Gift Card/Kimi/Siang), nail-tech daily totals, automatic tips, then reapply 10 editable nail-tech names, editable extra payment names, shared discount, and reset fields/checkmarks after adding income.
