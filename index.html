@@ -10,14 +10,13 @@
 <style>html,body{margin:0;width:100%;height:100%;background:#f7f5f2}#app{border:0;width:100%;height:100vh;display:block}</style>
 </head>
 <body>
-<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260815-techblank10-force2"></iframe>
+<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260815-editable-names-pay1"></iframe>
 <script>
 const app=document.getElementById('app');
+function getDoc(){try{return app.contentDocument||app.contentWindow.document}catch(e){return null}}
 function installEditableTechNames(){
-  let w,doc;try{w=app.contentWindow;doc=app.contentDocument||w.document}catch(e){return}
-  if(!doc)return;
-  const picker=doc.querySelector('#iTech');
-  if(!picker||picker.dataset.editableNames==='1')return;
+  const doc=getDoc();if(!doc)return;const w=app.contentWindow;
+  const picker=doc.querySelector('#iTech');if(!picker||picker.dataset.editableNames==='1')return;
   picker.dataset.editableNames='1';
   picker.innerHTML=Array.from({length:10},(_,i)=>`<label class="tech-choice" style="display:flex;align-items:center;gap:7px"><input class="editable-tech-check" type="checkbox" value=""><input class="editable-tech-name" type="text" autocomplete="off" placeholder="美甲師 ${i+1}" style="width:100%;padding:8px"></label>`).join('');
   picker.querySelectorAll('.tech-choice').forEach(row=>{
@@ -27,11 +26,21 @@ function installEditableTechNames(){
     cb.addEventListener('change',()=>{cb.value=(name.value||'').trim();if(cb.checked&&!cb.value){cb.checked=false;name.focus();return}if(typeof w.refreshTechSplit==='function')w.refreshTechSplit()});
   });
 }
-app.addEventListener('load',installEditableTechNames);
-setTimeout(installEditableTechNames,100);
-setTimeout(installEditableTechNames,500);
-setTimeout(installEditableTechNames,1200);
-setInterval(installEditableTechNames,2000);
+function installEditablePaymentNames(){
+  const doc=getDoc();if(!doc)return;
+  const p1=doc.getElementById('pKimi'),p2=doc.getElementById('pSiang');if(!p1||!p2)return;
+  function makeEditable(input,id,placeholder){
+    const box=input.parentElement;if(!box||box.dataset.editablePay==='1')return;
+    const label=box.querySelector('label');if(!label)return;
+    box.dataset.editablePay='1';
+    label.innerHTML=`<input id="${id}" type="text" autocomplete="off" placeholder="${placeholder}" style="padding:6px 8px;font-size:13px">`;
+  }
+  makeEditable(p1,'customPayName1','付款名稱 1');
+  makeEditable(p2,'customPayName2','付款名稱 2');
+}
+function installAll(){installEditableTechNames();installEditablePaymentNames()}
+app.addEventListener('load',installAll);
+setTimeout(installAll,100);setTimeout(installAll,500);setTimeout(installAll,1200);setInterval(installAll,2000);
 </script>
 </body>
 </html>
