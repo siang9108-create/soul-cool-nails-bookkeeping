@@ -10,7 +10,7 @@
 <style>html,body{margin:0;width:100%;height:100%;background:#f7f5f2}#app{border:0;width:100%;height:100vh;display:block}</style>
 </head>
 <body>
-<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260815-editable-names-pay1"></iframe>
+<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260815-shared-discount1"></iframe>
 <script>
 const app=document.getElementById('app');
 function getDoc(){try{return app.contentDocument||app.contentWindow.document}catch(e){return null}}
@@ -29,16 +29,34 @@ function installEditableTechNames(){
 function installEditablePaymentNames(){
   const doc=getDoc();if(!doc)return;
   const p1=doc.getElementById('pKimi'),p2=doc.getElementById('pSiang');if(!p1||!p2)return;
-  function makeEditable(input,id,placeholder){
-    const box=input.parentElement;if(!box||box.dataset.editablePay==='1')return;
-    const label=box.querySelector('label');if(!label)return;
-    box.dataset.editablePay='1';
-    label.innerHTML=`<input id="${id}" type="text" autocomplete="off" placeholder="${placeholder}" style="padding:6px 8px;font-size:13px">`;
-  }
-  makeEditable(p1,'customPayName1','付款名稱 1');
-  makeEditable(p2,'customPayName2','付款名稱 2');
+  function makeEditable(input,id,placeholder){const box=input.parentElement;if(!box||box.dataset.editablePay==='1')return;const label=box.querySelector('label');if(!label)return;box.dataset.editablePay='1';label.innerHTML=`<input id="${id}" type="text" autocomplete="off" placeholder="${placeholder}" style="padding:6px 8px;font-size:13px">`}
+  makeEditable(p1,'customPayName1','付款名稱 1');makeEditable(p2,'customPayName2','付款名稱 2');
 }
-function installAll(){installEditableTechNames();installEditablePaymentNames()}
+function installSharedDiscount(){
+  const doc=getDoc();if(!doc)return;const w=app.contentWindow;
+  const rows=doc.getElementById('techSplitRows');if(!rows||w.__sharedDiscountInstalled)return;
+  const original=w.refreshTechSplit;if(typeof original!=='function')return;
+  w.refreshTechSplit=function(){
+    const names=typeof w.selectedTechs==='function'?w.selectedTechs():[];
+    const box=doc.getElementById('techSplit');
+    const oldGross={};doc.querySelectorAll('.tech-service-input').forEach(el=>oldGross[el.dataset.tech]=el.value);
+    const oldDiscount=doc.getElementById('sharedTechDiscount')?.value||'';
+    if(!names.length){if(box)box.classList.remove('active');rows.innerHTML='';if(typeof w.refreshCalculations==='function')w.refreshCalculations();return}
+    if(box)box.classList.add('active');
+    rows.innerHTML=names.map(name=>`<div class="split-row"><b>${name}</b><input class="tech-service-input" data-tech="${name}" type="number" placeholder="服務金額" value="${oldGross[name]||''}"><span class="split-net" data-net-for="${name}"></span><span class="split-tip" data-tip-for="${name}"></span></div>`).join('')+`<div style="margin-top:12px"><label style="display:block;font-weight:700;margin-bottom:6px">折扣</label><input id="sharedTechDiscount" type="number" step="0.01" placeholder="折扣" value="${oldDiscount}" style="width:100%"></div>`;
+    doc.querySelectorAll('.tech-service-input,#sharedTechDiscount').forEach(el=>el.oninput=()=>{if(typeof w.refreshCalculations==='function')w.refreshCalculations()});
+    if(typeof w.refreshCalculations==='function')w.refreshCalculations();
+  };
+  const oldCurrent=w.currentParts;
+  w.currentParts=function(){
+    const parts=[...doc.querySelectorAll('.tech-service-input')].map(el=>({tech:el.dataset.tech,gross:Number(el.value||0),discount:0,amount:Number(el.value||0)}));
+    const discount=Math.max(0,Number(doc.getElementById('sharedTechDiscount')?.value||0));
+    if(parts.length&&discount>0){const total=parts.reduce((s,p)=>s+p.gross,0);let used=0;parts.forEach((p,i)=>{const d=i===parts.length-1?Math.min(p.gross,discount-used):(total>0?Math.min(p.gross,discount*p.gross/total):0);p.discount=d;p.amount=Math.max(0,p.gross-d);used+=d})}
+    return parts;
+  };
+  w.__sharedDiscountInstalled=true;
+}
+function installAll(){installEditableTechNames();installEditablePaymentNames();installSharedDiscount()}
 app.addEventListener('load',installAll);
 setTimeout(installAll,100);setTimeout(installAll,500);setTimeout(installAll,1200);setInterval(installAll,2000);
 </script>
