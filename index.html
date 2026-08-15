@@ -1,11 +1,64 @@
 <!doctype html>
-<html>
+<html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="refresh" content="0; url=soulcool_nails_FINAL_fixed_index.html">
-<script>
-window.location.replace("soulcool_nails_FINAL_fixed_index.html");
-</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+<title>Soulcool Nails 雲端記帳</title>
+<style>
+html,body{margin:0;width:100%;height:100%;background:#f7f5f2}
+#app{border:0;width:100%;height:100vh;display:block}
+</style>
 </head>
-<body></body>
+<body>
+<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260815-techblank10"></iframe>
+<script>
+const app=document.getElementById('app');
+
+function installEditableTechNames(){
+  let w,doc;
+  try{w=app.contentWindow;doc=app.contentDocument||w.document}catch(e){return}
+  if(!doc)return;
+  const picker=doc.querySelector('#iTech');
+  if(!picker || picker.dataset.editableNames==='1')return;
+
+  picker.dataset.editableNames='1';
+  picker.innerHTML=Array.from({length:10},(_,i)=>`
+    <label class="tech-choice" style="display:flex;align-items:center;gap:7px">
+      <input class="editable-tech-check" type="checkbox" value="">
+      <input class="editable-tech-name" type="text" autocomplete="off" placeholder="美甲師 ${i+1}" style="width:100%;padding:8px">
+    </label>`).join('');
+
+  picker.querySelectorAll('.tech-choice').forEach(row=>{
+    const cb=row.querySelector('.editable-tech-check');
+    const name=row.querySelector('.editable-tech-name');
+    const update=()=>{
+      cb.value=(name.value||'').trim();
+      if(!cb.value && cb.checked) cb.checked=false;
+      if(typeof w.refreshTechSplit==='function') w.refreshTechSplit();
+    };
+    name.addEventListener('input',update);
+    name.addEventListener('change',update);
+    cb.addEventListener('change',()=>{
+      cb.value=(name.value||'').trim();
+      if(cb.checked && !cb.value){
+        cb.checked=false;
+        name.focus();
+        return;
+      }
+      if(typeof w.refreshTechSplit==='function') w.refreshTechSplit();
+    });
+  });
+}
+
+app.addEventListener('load',()=>{
+  installEditableTechNames();
+  try{
+    const doc=app.contentDocument||app.contentWindow.document;
+    const observer=new MutationObserver(()=>installEditableTechNames());
+    observer.observe(doc.documentElement,{childList:true,subtree:true});
+  }catch(e){}
+});
+</script>
+</body>
 </html>
