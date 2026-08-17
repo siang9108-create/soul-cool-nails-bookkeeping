@@ -27,10 +27,61 @@ function installEditableTechNames(){
   });
 }
 function installEditablePaymentNames(){
-  const doc=getDoc();if(!doc)return;
+  const doc=getDoc();if(!doc)return;const w=app.contentWindow;
   const p1=doc.getElementById('pKimi'),p2=doc.getElementById('pSiang');if(!p1||!p2)return;
-  function makeEditable(input,id,placeholder){const box=input.parentElement;if(!box||box.dataset.editablePay==='1')return;const label=box.querySelector('label');if(!label)return;box.dataset.editablePay='1';label.innerHTML=`<input id="${id}" type="text" autocomplete="off" placeholder="${placeholder}" style="padding:6px 8px;font-size:13px">`}
-  makeEditable(p1,'customPayName1','付款名稱 1');makeEditable(p2,'customPayName2','付款名稱 2');
+  function makeEditable(input,id,placeholder){const box=input.parentElement;if(!box)return;let nameInput=doc.getElementById(id);if(!nameInput){const label=box.querySelector('label');if(!label)return;box.dataset.editablePay='1';label.innerHTML=`<input id="${id}" type="text" autocomplete="off" placeholder="${placeholder}" style="padding:6px 8px;font-size:13px">`;nameInput=doc.getElementById(id)}return nameInput}
+  const n1=makeEditable(p1,'customPayName1','付款名稱 1'),n2=makeEditable(p2,'customPayName2','付款名稱 2');if(!n1||!n2)return;
+  const KEY1='soulcool_custom_pay_name_1',KEY2='soulcool_custom_pay_name_2';
+  if(!n1.dataset.bound){
+    n1.value=localStorage.getItem(KEY1)||n1.value||'';
+    n2.value=localStorage.getItem(KEY2)||n2.value||'';
+    const changed=()=>{localStorage.setItem(KEY1,n1.value.trim());localStorage.setItem(KEY2,n2.value.trim());if(typeof w.render==='function')w.render()};
+    n1.addEventListener('input',changed);n1.addEventListener('change',changed);n2.addEventListener('input',changed);n2.addEventListener('change',changed);
+    n1.dataset.bound=n2.dataset.bound='1';
+  }
+  const payName1=()=>n1.value.trim()||'Kimi';
+  const payName2=()=>n2.value.trim()||'Siang';
+  const parseRawPay=x=>{
+    const out={};const s=String((x&&x.pay)||'');
+    if(s.includes(':'))s.split('|').forEach(part=>{const i=part.lastIndexOf(':');if(i>0){const k=part.slice(0,i),v=Number(part.slice(i+1)||0);out[k]=(out[k]||0)+v}});
+    else if(s)out[s]=(out[s]||0)+Number((x&&x.paidTotal)||((x&&x.amount)||0)+((x&&x.tips)||0));
+    return out;
+  };
+  const updatePaymentLabels=()=>{
+    const a=doc.getElementById('dKimi'),b=doc.getElementById('dSiang');
+    if(a){const s=a.parentElement&&a.parentElement.querySelector('small');if(s)s.textContent=payName1()}
+    if(b){const s=b.parentElement&&b.parentElement.querySelector('small');if(s)s.textContent=payName2()}
+    const rows=doc.querySelectorAll('#payRows tr');
+    if(rows[4]&&rows[4].cells[0])rows[4].cells[0].textContent=payName1();
+    if(rows[5]&&rows[5].cells[0])rows[5].cells[0].textContent=payName2();
+  };
+  if(!w.__customPaymentAccountingFixed){
+    const oldRender=w.render;
+    w.paymentParts=function(){
+      const out={Zelle:Number(doc.getElementById('pZelle')?.value||0),Cash:Number(doc.getElementById('pCash')?.value||0),Card:Number(doc.getElementById('pCard')?.value||0),'Gift Card':Number(doc.getElementById('pGift')?.value||0)};
+      const add=(k,v)=>{if(v>0)out[k]=(out[k]||0)+v};
+      add(payName1(),Number(p1.value||0));add(payName2(),Number(p2.value||0));return out;
+    };
+    w.parsePay=function(x){
+      const raw=parseRawPay(x),a=payName1(),b=payName2();
+      const out={Zelle:Number(raw.Zelle||0),Cash:Number(raw.Cash||0),Card:Number(raw.Card||0),'Gift Card':Number(raw['Gift Card']||0),Kimi:0,Siang:0};
+      out.Kimi=Number(raw[a]||0)+(a!=='Kimi'?Number(raw.Kimi||0):0);
+      out.Siang=Number(raw[b]||0)+(b!=='Siang'?Number(raw.Siang||0):0);
+      return out;
+    };
+    w.payLabel=function(x){
+      const raw=parseRawPay(x),a=payName1(),b=payName2(),shown={};
+      const add=(k,v)=>{v=Number(v||0);if(v>0)shown[k]=(shown[k]||0)+v};
+      add('Zelle',raw.Zelle);add('Cash',raw.Cash);add('Card',raw.Card);add('Gift Card',raw['Gift Card']);
+      add(a,raw[a]);if(a!=='Kimi')add(a,raw.Kimi);
+      add(b,raw[b]);if(b!=='Siang')add(b,raw.Siang);
+      Object.entries(raw).forEach(([k,v])=>{if(!['Zelle','Cash','Card','Gift Card','Kimi','Siang',a,b].includes(k))add(k,v)});
+      return Object.entries(shown).map(([k,v])=>`${k} $${Number(v).toFixed(2)}`).join(' + ')||'-';
+    };
+    if(typeof oldRender==='function')w.render=function(){const r=oldRender.apply(this,arguments);updatePaymentLabels();return r};
+    w.__customPaymentAccountingFixed=true;
+  }
+  updatePaymentLabels();
 }
 function installSharedDiscount(){
   const doc=getDoc();if(!doc)return;const w=app.contentWindow;
