@@ -54,6 +54,7 @@ function installEditablePaymentNames(){
     const rows=doc.querySelectorAll('#payRows tr');
     if(rows[4]&&rows[4].cells[0])rows[4].cells[0].textContent=payName1();
     if(rows[5]&&rows[5].cells[0])rows[5].cells[0].textContent=payName2();
+    if(payName1()===payName2()&&rows[5])rows[5].style.display='none';else if(rows[5])rows[5].style.display='';
   };
   if(!w.__customPaymentAccountingFixed){
     const oldRender=w.render;
