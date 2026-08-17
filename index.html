@@ -61,22 +61,18 @@ function installEditablePaymentNames(){
     w.paymentParts=function(){
       const out={Zelle:Number(doc.getElementById('pZelle')?.value||0),Cash:Number(doc.getElementById('pCash')?.value||0),Card:Number(doc.getElementById('pCard')?.value||0),'Gift Card':Number(doc.getElementById('pGift')?.value||0)};
       const add=(k,v)=>{if(v>0)out[k]=(out[k]||0)+v};
-      add(payName1(),Number(p1.value||0));add(payName2(),Number(p2.value||0));return out;
+      add('Kimi',Number(p1.value||0));add('Siang',Number(p2.value||0));return out;
     };
     w.parsePay=function(x){
-      const raw=parseRawPay(x),a=payName1(),b=payName2();
-      const out={Zelle:Number(raw.Zelle||0),Cash:Number(raw.Cash||0),Card:Number(raw.Card||0),'Gift Card':Number(raw['Gift Card']||0),Kimi:0,Siang:0};
-      out.Kimi=Number(raw[a]||0)+(a!=='Kimi'?Number(raw.Kimi||0):0);
-      out.Siang=Number(raw[b]||0)+(b!=='Siang'?Number(raw.Siang||0):0);
-      return out;
+      const raw=parseRawPay(x);
+      return {Zelle:Number(raw.Zelle||0),Cash:Number(raw.Cash||0),Card:Number(raw.Card||0),'Gift Card':Number(raw['Gift Card']||0),Kimi:Number(raw.Kimi||0),Siang:Number(raw.Siang||0)};
     };
     w.payLabel=function(x){
-      const raw=parseRawPay(x),a=payName1(),b=payName2(),shown={};
+      const raw=parseRawPay(x),shown={};
       const add=(k,v)=>{v=Number(v||0);if(v>0)shown[k]=(shown[k]||0)+v};
       add('Zelle',raw.Zelle);add('Cash',raw.Cash);add('Card',raw.Card);add('Gift Card',raw['Gift Card']);
-      add(a,raw[a]);if(a!=='Kimi')add(a,raw.Kimi);
-      add(b,raw[b]);if(b!=='Siang')add(b,raw.Siang);
-      Object.entries(raw).forEach(([k,v])=>{if(!['Zelle','Cash','Card','Gift Card','Kimi','Siang',a,b].includes(k))add(k,v)});
+      add(payName1(),raw.Kimi);add(payName2(),raw.Siang);
+      Object.entries(raw).forEach(([k,v])=>{if(!['Zelle','Cash','Card','Gift Card','Kimi','Siang'].includes(k))add(k,v)});
       return Object.entries(shown).map(([k,v])=>`${k} $${Number(v).toFixed(2)}`).join(' + ')||'-';
     };
     if(typeof oldRender==='function')w.render=function(){const r=oldRender.apply(this,arguments);updatePaymentLabels();return r};
