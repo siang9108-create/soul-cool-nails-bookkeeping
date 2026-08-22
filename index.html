@@ -14,6 +14,7 @@
 <script>
 const app=document.getElementById('app');
 function getDoc(){try{return app.contentDocument||app.contentWindow.document}catch(e){return null}}
+function installVisibleTitle(){const doc=getDoc();if(!doc)return;const h1=doc.querySelector('h1');if(h1)h1.textContent='💅 Soul Cool Daily'}
 function installEditableTechNames(){
   const doc=getDoc();if(!doc)return;const w=app.contentWindow;
   const picker=doc.querySelector('#iTech');if(!picker||picker.dataset.editableNames==='1')return;
@@ -104,7 +105,7 @@ function installSharedDiscount(){
   };
   w.__sharedDiscountInstalled=true;
 }
-function installAll(){installEditableTechNames();installEditablePaymentNames();installSharedDiscount()}
+function installAll(){installVisibleTitle();installEditableTechNames();installEditablePaymentNames();installSharedDiscount()}
 app.addEventListener('load',installAll);
 setTimeout(installAll,100);setTimeout(installAll,500);setTimeout(installAll,1200);setInterval(installAll,2000);
 </script>
