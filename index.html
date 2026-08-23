@@ -10,21 +10,17 @@
 <style>html,body{margin:0;width:100%;height:100%;background:#f7f5f2}#app{border:0;width:100%;height:100vh;display:block}</style>
 </head>
 <body>
-<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260821-dailytech1"></iframe>
+<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260822-managertechfix"></iframe>
 <script>
 const app=document.getElementById('app');
 function getDoc(){try{return app.contentDocument||app.contentWindow.document}catch(e){return null}}
-function installEditableTechNames(){
+function installFixedTechNames(){
   const doc=getDoc();if(!doc)return;const w=app.contentWindow;
-  const picker=doc.querySelector('#iTech');if(!picker||picker.dataset.editableNames==='1')return;
-  picker.dataset.editableNames='1';
-  picker.innerHTML=Array.from({length:10},(_,i)=>`<label class="tech-choice" style="display:flex;align-items:center;gap:7px"><input class="editable-tech-check" type="checkbox" value=""><input class="editable-tech-name" type="text" autocomplete="off" placeholder="美甲師 ${i+1}" style="width:100%;padding:8px"></label>`).join('');
-  picker.querySelectorAll('.tech-choice').forEach(row=>{
-    const cb=row.querySelector('.editable-tech-check'),name=row.querySelector('.editable-tech-name');
-    const sync=()=>{cb.value=(name.value||'').trim();if(!cb.value)cb.checked=false;if(typeof w.refreshTechSplit==='function')w.refreshTechSplit()};
-    name.addEventListener('input',sync);name.addEventListener('change',sync);
-    cb.addEventListener('change',()=>{cb.value=(name.value||'').trim();if(cb.checked&&!cb.value){cb.checked=false;name.focus();return}if(typeof w.refreshTechSplit==='function')w.refreshTechSplit()});
-  });
+  const picker=doc.querySelector('#iTech');if(!picker||picker.dataset.fixedNames==='1')return;
+  picker.dataset.fixedNames='1';
+  const names=['Kimi','Zoey','Cherries','Cici','Tina','Eva','Betty','Raina'];
+  picker.innerHTML=names.map(name=>`<label class="tech-choice"><input type="checkbox" value="${name}">${name}</label>`).join('');
+  picker.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.addEventListener('change',()=>{if(typeof w.refreshTechSplit==='function')w.refreshTechSplit()}));
 }
 function installEditablePaymentNames(){
   const doc=getDoc();if(!doc)return;const w=app.contentWindow;
@@ -41,72 +37,17 @@ function installEditablePaymentNames(){
   }
   const payName1=()=>n1.value.trim()||'Kimi';
   const payName2=()=>n2.value.trim()||'Siang';
-  const parseRawPay=x=>{
-    const out={};const s=String((x&&x.pay)||'');
-    if(s.includes(':'))s.split('|').forEach(part=>{const i=part.lastIndexOf(':');if(i>0){const k=part.slice(0,i),v=Number(part.slice(i+1)||0);out[k]=(out[k]||0)+v}});
-    else if(s)out[s]=(out[s]||0)+Number((x&&x.paidTotal)||((x&&x.amount)||0)+((x&&x.tips)||0));
-    return out;
-  };
-  const updatePaymentLabels=()=>{
-    const a=doc.getElementById('dKimi'),b=doc.getElementById('dSiang');
-    if(a){const s=a.parentElement&&a.parentElement.querySelector('small');if(s)s.textContent=payName1()}
-    if(b){const s=b.parentElement&&b.parentElement.querySelector('small');if(s)s.textContent=payName2()}
-    const rows=doc.querySelectorAll('#payRows tr');
-    if(rows[4]&&rows[4].cells[0])rows[4].cells[0].textContent=payName1();
-    if(rows[5]&&rows[5].cells[0])rows[5].cells[0].textContent=payName2();
-    if(payName1()===payName2()&&rows[5])rows[5].style.display='none';else if(rows[5])rows[5].style.display='';
-  };
-  if(!w.__customPaymentAccountingFixed){
-    const oldRender=w.render;
-    w.paymentParts=function(){
-      const out={Zelle:Number(doc.getElementById('pZelle')?.value||0),Cash:Number(doc.getElementById('pCash')?.value||0),Card:Number(doc.getElementById('pCard')?.value||0),'Gift Card':Number(doc.getElementById('pGift')?.value||0)};
-      const add=(k,v)=>{if(v>0)out[k]=(out[k]||0)+v};
-      add('Kimi',Number(p1.value||0));add('Siang',Number(p2.value||0));return out;
-    };
-    w.parsePay=function(x){
-      const raw=parseRawPay(x);
-      return {Zelle:Number(raw.Zelle||0),Cash:Number(raw.Cash||0),Card:Number(raw.Card||0),'Gift Card':Number(raw['Gift Card']||0),Kimi:Number(raw.Kimi||0),Siang:Number(raw.Siang||0)};
-    };
-    w.payLabel=function(x){
-      const raw=parseRawPay(x),shown={};
-      const add=(k,v)=>{v=Number(v||0);if(v>0)shown[k]=(shown[k]||0)+v};
-      add('Zelle',raw.Zelle);add('Cash',raw.Cash);add('Card',raw.Card);add('Gift Card',raw['Gift Card']);
-      add(payName1(),raw.Kimi);add(payName2(),raw.Siang);
-      Object.entries(raw).forEach(([k,v])=>{if(!['Zelle','Cash','Card','Gift Card','Kimi','Siang'].includes(k))add(k,v)});
-      return Object.entries(shown).map(([k,v])=>`${k} $${Number(v).toFixed(2)}`).join(' + ')||'-';
-    };
-    if(typeof oldRender==='function')w.render=function(){const r=oldRender.apply(this,arguments);updatePaymentLabels();return r};
-    w.__customPaymentAccountingFixed=true;
-  }
-  updatePaymentLabels();
+  const parseRawPay=x=>{const out={};const s=String((x&&x.pay)||'');if(s.includes(':'))s.split('|').forEach(part=>{const i=part.lastIndexOf(':');if(i>0){const k=part.slice(0,i),v=Number(part.slice(i+1)||0);out[k]=(out[k]||0)+v}});else if(s)out[s]=(out[s]||0)+Number((x&&x.paidTotal)||((x&&x.amount)||0)+((x&&x.tips)||0));return out};
+  const updatePaymentLabels=()=>{const a=doc.getElementById('dKimi'),b=doc.getElementById('dSiang');if(a){const s=a.parentElement&&a.parentElement.querySelector('small');if(s)s.textContent=payName1()}if(b){const s=b.parentElement&&b.parentElement.querySelector('small');if(s)s.textContent=payName2()}const rows=doc.querySelectorAll('#payRows tr');if(rows[4]&&rows[4].cells[0])rows[4].cells[0].textContent=payName1();if(rows[5]&&rows[5].cells[0])rows[5].cells[0].textContent=payName2();if(payName1()===payName2()&&rows[5])rows[5].style.display='none';else if(rows[5])rows[5].style.display=''};
+  if(!w.__customPaymentAccountingFixed){const oldRender=w.render;w.paymentParts=function(){const out={Zelle:Number(doc.getElementById('pZelle')?.value||0),Cash:Number(doc.getElementById('pCash')?.value||0),Card:Number(doc.getElementById('pCard')?.value||0),'Gift Card':Number(doc.getElementById('pGift')?.value||0)};const add=(k,v)=>{if(v>0)out[k]=(out[k]||0)+v};add('Kimi',Number(p1.value||0));add('Siang',Number(p2.value||0));return out};w.parsePay=function(x){const raw=parseRawPay(x);return {Zelle:Number(raw.Zelle||0),Cash:Number(raw.Cash||0),Card:Number(raw.Card||0),'Gift Card':Number(raw['Gift Card']||0),Kimi:Number(raw.Kimi||0),Siang:Number(raw.Siang||0)}};w.payLabel=function(x){const raw=parseRawPay(x),shown={};const add=(k,v)=>{v=Number(v||0);if(v>0)shown[k]=(shown[k]||0)+v};add('Zelle',raw.Zelle);add('Cash',raw.Cash);add('Card',raw.Card);add('Gift Card',raw['Gift Card']);add(payName1(),raw.Kimi);add(payName2(),raw.Siang);Object.entries(raw).forEach(([k,v])=>{if(!['Zelle','Cash','Card','Gift Card','Kimi','Siang'].includes(k))add(k,v)});return Object.entries(shown).map(([k,v])=>`${k} $${Number(v).toFixed(2)}`).join(' + ')||'-'};if(typeof oldRender==='function')w.render=function(){const r=oldRender.apply(this,arguments);updatePaymentLabels();return r};w.__customPaymentAccountingFixed=true}updatePaymentLabels();
 }
 function installSharedDiscount(){
-  const doc=getDoc();if(!doc)return;const w=app.contentWindow;
-  const rows=doc.getElementById('techSplitRows');if(!rows||w.__sharedDiscountInstalled)return;
-  const original=w.refreshTechSplit;if(typeof original!=='function')return;
-  w.refreshTechSplit=function(){
-    const names=typeof w.selectedTechs==='function'?w.selectedTechs():[];
-    const box=doc.getElementById('techSplit');
-    const oldGross={};doc.querySelectorAll('.tech-service-input').forEach(el=>oldGross[el.dataset.tech]=el.value);
-    const oldDiscount=doc.getElementById('sharedTechDiscount')?.value||'';
-    if(!names.length){if(box)box.classList.remove('active');rows.innerHTML='';if(typeof w.refreshCalculations==='function')w.refreshCalculations();return}
-    if(box)box.classList.add('active');
-    rows.innerHTML=names.map(name=>`<div class="split-row"><b>${name}</b><input class="tech-service-input" data-tech="${name}" type="number" placeholder="服務金額" value="${oldGross[name]||''}"><span class="split-net" data-net-for="${name}"></span><span class="split-tip" data-tip-for="${name}"></span></div>`).join('')+`<div style="margin-top:12px"><label style="display:block;font-weight:700;margin-bottom:6px">折扣</label><input id="sharedTechDiscount" type="number" step="0.01" placeholder="折扣" value="${oldDiscount}" style="width:100%"></div>`;
-    doc.querySelectorAll('.tech-service-input,#sharedTechDiscount').forEach(el=>el.oninput=()=>{if(typeof w.refreshCalculations==='function')w.refreshCalculations()});
-    if(typeof w.refreshCalculations==='function')w.refreshCalculations();
-  };
-  const oldCurrent=w.currentParts;
-  w.currentParts=function(){
-    const parts=[...doc.querySelectorAll('.tech-service-input')].map(el=>({tech:el.dataset.tech,gross:Number(el.value||0),discount:0,amount:Number(el.value||0)}));
-    const discount=Math.max(0,Number(doc.getElementById('sharedTechDiscount')?.value||0));
-    if(parts.length&&discount>0){const total=parts.reduce((s,p)=>s+p.gross,0);let used=0;parts.forEach((p,i)=>{const d=i===parts.length-1?Math.min(p.gross,discount-used):(total>0?Math.min(p.gross,discount*p.gross/total):0);p.discount=d;p.amount=Math.max(0,p.gross-d);used+=d})}
-    return parts;
-  };
-  w.__sharedDiscountInstalled=true;
+  const doc=getDoc();if(!doc)return;const w=app.contentWindow;const rows=doc.getElementById('techSplitRows');if(!rows||w.__sharedDiscountInstalled)return;const original=w.refreshTechSplit;if(typeof original!=='function')return;
+  w.refreshTechSplit=function(){const names=typeof w.selectedTechs==='function'?w.selectedTechs():[];const box=doc.getElementById('techSplit');const oldGross={};doc.querySelectorAll('.tech-service-input').forEach(el=>oldGross[el.dataset.tech]=el.value);const oldDiscount=doc.getElementById('sharedTechDiscount')?.value||'';if(!names.length){if(box)box.classList.remove('active');rows.innerHTML='';if(typeof w.refreshCalculations==='function')w.refreshCalculations();return}if(box)box.classList.add('active');rows.innerHTML=names.map(name=>`<div class="split-row"><b>${name}</b><input class="tech-service-input" data-tech="${name}" type="number" placeholder="服務金額" value="${oldGross[name]||''}"><span class="split-net" data-net-for="${name}"></span><span class="split-tip" data-tip-for="${name}"></span></div>`).join('')+`<div style="margin-top:12px"><label style="display:block;font-weight:700;margin-bottom:6px">折扣</label><input id="sharedTechDiscount" type="number" step="0.01" placeholder="折扣" value="${oldDiscount}" style="width:100%"></div>`;doc.querySelectorAll('.tech-service-input,#sharedTechDiscount').forEach(el=>el.oninput=()=>{if(typeof w.refreshCalculations==='function')w.refreshCalculations()});if(typeof w.refreshCalculations==='function')w.refreshCalculations()};
+  w.currentParts=function(){const parts=[...doc.querySelectorAll('.tech-service-input')].map(el=>({tech:el.dataset.tech,gross:Number(el.value||0),discount:0,amount:Number(el.value||0)}));const discount=Math.max(0,Number(doc.getElementById('sharedTechDiscount')?.value||0));if(parts.length&&discount>0){const total=parts.reduce((s,p)=>s+p.gross,0);let used=0;parts.forEach((p,i)=>{const d=i===parts.length-1?Math.min(p.gross,discount-used):(total>0?Math.min(p.gross,discount*p.gross/total):0);p.discount=d;p.amount=Math.max(0,p.gross-d);used+=d})}return parts};w.__sharedDiscountInstalled=true;
 }
-function installAll(){installEditableTechNames();installEditablePaymentNames();installSharedDiscount()}
-app.addEventListener('load',installAll);
-setTimeout(installAll,100);setTimeout(installAll,500);setTimeout(installAll,1200);setInterval(installAll,2000);
+function installAll(){installFixedTechNames();installEditablePaymentNames();installSharedDiscount()}
+app.addEventListener('load',installAll);setTimeout(installAll,100);setTimeout(installAll,500);setTimeout(installAll,1200);setInterval(installAll,2000);
 </script>
 </body>
 </html>
