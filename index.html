@@ -10,7 +10,7 @@
 <style>html,body{margin:0;width:100%;height:100%;background:#f7f5f2}#app{border:0;width:100%;height:100vh;display:block}</style>
 </head>
 <body>
-<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260822-managertechfix"></iframe>
+<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260824-tipmode1"></iframe>
 <script>
 const app=document.getElementById('app');
 function getDoc(){try{return app.contentDocument||app.contentWindow.document}catch(e){return null}}
@@ -43,8 +43,45 @@ function installEditablePaymentNames(){
 }
 function installSharedDiscount(){
   const doc=getDoc();if(!doc)return;const w=app.contentWindow;const rows=doc.getElementById('techSplitRows');if(!rows||w.__sharedDiscountInstalled)return;const original=w.refreshTechSplit;if(typeof original!=='function')return;
-  w.refreshTechSplit=function(){const names=typeof w.selectedTechs==='function'?w.selectedTechs():[];const box=doc.getElementById('techSplit');const oldGross={};doc.querySelectorAll('.tech-service-input').forEach(el=>oldGross[el.dataset.tech]=el.value);const oldDiscount=doc.getElementById('sharedTechDiscount')?.value||'';if(!names.length){if(box)box.classList.remove('active');rows.innerHTML='';if(typeof w.refreshCalculations==='function')w.refreshCalculations();return}if(box)box.classList.add('active');rows.innerHTML=names.map(name=>`<div class="split-row"><b>${name}</b><input class="tech-service-input" data-tech="${name}" type="number" placeholder="服務金額" value="${oldGross[name]||''}"><span class="split-net" data-net-for="${name}"></span><span class="split-tip" data-tip-for="${name}"></span></div>`).join('')+`<div style="margin-top:12px"><label style="display:block;font-weight:700;margin-bottom:6px">折扣</label><input id="sharedTechDiscount" type="number" step="0.01" placeholder="折扣" value="${oldDiscount}" style="width:100%"></div>`;doc.querySelectorAll('.tech-service-input,#sharedTechDiscount').forEach(el=>el.oninput=()=>{if(typeof w.refreshCalculations==='function')w.refreshCalculations()});if(typeof w.refreshCalculations==='function')w.refreshCalculations()};
-  w.currentParts=function(){const parts=[...doc.querySelectorAll('.tech-service-input')].map(el=>({tech:el.dataset.tech,gross:Number(el.value||0),discount:0,amount:Number(el.value||0)}));const discount=Math.max(0,Number(doc.getElementById('sharedTechDiscount')?.value||0));if(parts.length&&discount>0){const total=parts.reduce((s,p)=>s+p.gross,0);let used=0;parts.forEach((p,i)=>{const d=i===parts.length-1?Math.min(p.gross,discount-used):(total>0?Math.min(p.gross,discount*p.gross/total):0);p.discount=d;p.amount=Math.max(0,p.gross-d);used+=d})}return parts};w.__sharedDiscountInstalled=true;
+  const originalSplitTips=w.splitTips;
+  const originalAddIncome=w.addIncome;
+  function tipMode(){return doc.getElementById('tipAllocationMode')?.value||'auto'}
+  function manualTips(){const out={};doc.querySelectorAll('.manual-tip-input').forEach(el=>out[el.dataset.tech]=Number(el.value||0));return out}
+  w.splitTips=function(totalTips,parts){
+    if(tipMode()!=='manual')return originalSplitTips(totalTips,parts);
+    const tips=manualTips();
+    return parts.map(p=>({...p,tip:Number(tips[p.tech]||0)}));
+  };
+  w.refreshTechSplit=function(){
+    const names=typeof w.selectedTechs==='function'?w.selectedTechs():[];
+    const box=doc.getElementById('techSplit');
+    const oldGross={},oldManual=manualTips();
+    doc.querySelectorAll('.tech-service-input').forEach(el=>oldGross[el.dataset.tech]=el.value);
+    const oldDiscount=doc.getElementById('sharedTechDiscount')?.value||'';
+    const oldMode=tipMode();
+    if(!names.length){if(box)box.classList.remove('active');rows.innerHTML='';if(typeof w.refreshCalculations==='function')w.refreshCalculations();return}
+    if(box)box.classList.add('active');
+    rows.innerHTML=`<div style="margin-bottom:12px"><label style="display:block;font-weight:700;margin-bottom:6px">Tips 分配</label><select id="tipAllocationMode" style="width:100%;padding:10px;border-radius:10px"><option value="auto" ${oldMode==='auto'?'selected':''}>自動比例</option><option value="manual" ${oldMode==='manual'?'selected':''}>手動輸入</option></select></div>`+
+      names.map(name=>`<div class="split-row"><b>${name}</b><input class="tech-service-input" data-tech="${name}" type="number" placeholder="服務金額" value="${oldGross[name]||''}"><span class="split-net" data-net-for="${name}"></span><span class="split-tip auto-tip-display" data-tip-for="${name}" style="${oldMode==='manual'?'display:none':''}"></span><input class="manual-tip-input" data-tech="${name}" type="number" min="0" step="0.01" placeholder="Tips" value="${oldManual[name]??''}" style="${oldMode==='manual'?'':'display:none'}"></div>`).join('')+
+      `<div style="margin-top:12px"><label style="display:block;font-weight:700;margin-bottom:6px">折扣</label><input id="sharedTechDiscount" type="number" step="0.01" placeholder="折扣" value="${oldDiscount}" style="width:100%"></div>`;
+    const mode=doc.getElementById('tipAllocationMode');
+    if(mode)mode.onchange=()=>{const manual=mode.value==='manual';doc.querySelectorAll('.manual-tip-input').forEach(el=>el.style.display=manual?'':'none');doc.querySelectorAll('.auto-tip-display').forEach(el=>el.style.display=manual?'none':'');if(typeof w.refreshCalculations==='function')w.refreshCalculations()};
+    doc.querySelectorAll('.tech-service-input,#sharedTechDiscount,.manual-tip-input').forEach(el=>el.oninput=()=>{if(typeof w.refreshCalculations==='function')w.refreshCalculations()});
+    if(typeof w.refreshCalculations==='function')w.refreshCalculations();
+  };
+  w.currentParts=function(){const parts=[...doc.querySelectorAll('.tech-service-input')].map(el=>({tech:el.dataset.tech,gross:Number(el.value||0),discount:0,amount:Number(el.value||0)}));const discount=Math.max(0,Number(doc.getElementById('sharedTechDiscount')?.value||0));if(parts.length&&discount>0){const total=parts.reduce((s,p)=>s+p.gross,0);let used=0;parts.forEach((p,i)=>{const d=i===parts.length-1?Math.min(p.gross,discount-used):(total>0?Math.min(p.gross,discount*p.gross/total):0);p.discount=d;p.amount=Math.max(0,p.gross-d);used+=d})}return parts};
+  w.addIncome=function(){
+    if(tipMode()==='manual'){
+      const parts=w.currentParts();
+      const gross=parts.reduce((s,p)=>s+Number(p.gross||0),0);
+      const paid=typeof w.paymentTotal==='function'?Number(w.paymentTotal()||0):0;
+      const expected=Math.max(0,Math.round(paid-gross));
+      const entered=Object.values(manualTips()).reduce((s,v)=>s+Number(v||0),0);
+      if(Math.abs(entered-expected)>0.001)return alert('手動 Tips 合計必須等於總 Tips $'+expected.toFixed(2));
+    }
+    return originalAddIncome.apply(w,arguments);
+  };
+  w.__sharedDiscountInstalled=true;
 }
 function installAll(){installFixedTechNames();installEditablePaymentNames();installSharedDiscount()}
 app.addEventListener('load',installAll);setTimeout(installAll,100);setTimeout(installAll,500);setTimeout(installAll,1200);setInterval(installAll,2000);
