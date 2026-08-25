@@ -10,7 +10,7 @@
 <style>html,body{margin:0;width:100%;height:100%;background:#f7f5f2}#app{border:0;width:100%;height:100vh;display:block}</style>
 </head>
 <body>
-<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260824-storetip10"></iframe>
+<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260825-discountmode1"></iframe>
 <script>
 const app=document.getElementById('app');
 function getDoc(){try{return app.contentDocument||app.contentWindow.document}catch(e){return null}}
@@ -47,6 +47,7 @@ function installSharedDiscount(){
   const originalAddIncome=w.addIncome;
   const originalRefreshCalculations=w.refreshCalculations;
   function tipMode(){return doc.getElementById('tipAllocationMode')?.value||'auto'}
+  function discountMode(){return doc.getElementById('discountMode')?.value||'amount'}
   function manualTips(){const out={};doc.querySelectorAll('.manual-tip-input').forEach(el=>out[el.dataset.tech]=Number(el.value||0));return out}
   function storeTipTotal(parts){const gross=parts.reduce((s,p)=>s+Number(p.gross||0),0);return Math.round(gross*0.10)}
   w.splitTips=function(totalTips,parts){
@@ -60,18 +61,34 @@ function installSharedDiscount(){
     const oldGross={},oldManual=manualTips();
     doc.querySelectorAll('.tech-service-input').forEach(el=>oldGross[el.dataset.tech]=el.value);
     const oldDiscount=doc.getElementById('sharedTechDiscount')?.value||'';
+    const oldDiscountMode=discountMode();
     const oldMode=tipMode();
     if(!names.length){if(box)box.classList.remove('active');rows.innerHTML='';if(typeof w.refreshCalculations==='function')w.refreshCalculations();return}
     if(box)box.classList.add('active');
     rows.innerHTML=`<div style="margin-bottom:12px"><label style="display:block;font-weight:700;margin-bottom:6px">Tips 分配</label><select id="tipAllocationMode" style="width:100%;padding:10px;border-radius:10px"><option value="auto" ${oldMode==='auto'?'selected':''}>自動比例</option><option value="manual" ${oldMode==='manual'?'selected':''}>手動輸入</option><option value="store10" ${oldMode==='store10'?'selected':''}>店家補 10% Tips</option></select></div>`+
       names.map(name=>`<div class="split-row"><b>${name}</b><input class="tech-service-input" data-tech="${name}" type="number" placeholder="服務金額" value="${oldGross[name]||''}"><span class="split-net" data-net-for="${name}"></span><span class="split-tip auto-tip-display" data-tip-for="${name}" style="${oldMode==='manual'?'display:none':''}"></span><input class="manual-tip-input" data-tech="${name}" type="number" min="0" step="0.01" placeholder="Tips" value="${oldManual[name]??''}" style="${oldMode==='manual'?'':'display:none'}"></div>`).join('')+
-      `<div style="margin-top:12px"><label style="display:block;font-weight:700;margin-bottom:6px">折扣</label><input id="sharedTechDiscount" type="number" step="0.01" placeholder="折扣" value="${oldDiscount}" style="width:100%"></div>`;
+      `<div style="margin-top:12px"><label style="display:block;font-weight:700;margin-bottom:6px">折扣方式</label><select id="discountMode" style="width:100%;padding:10px;border-radius:10px;margin-bottom:8px"><option value="amount" ${oldDiscountMode==='amount'?'selected':''}>$ 固定金額折扣</option><option value="percent" ${oldDiscountMode==='percent'?'selected':''}>% 百分比折扣</option></select><label style="display:block;font-weight:700;margin-bottom:6px">折扣</label><input id="sharedTechDiscount" type="number" min="0" step="0.01" placeholder="${oldDiscountMode==='percent'?'例如 15':'例如 8'}" value="${oldDiscount}" style="width:100%"></div>`;
     const mode=doc.getElementById('tipAllocationMode');
     if(mode)mode.onchange=()=>{const manual=mode.value==='manual';doc.querySelectorAll('.manual-tip-input').forEach(el=>el.style.display=manual?'':'none');doc.querySelectorAll('.auto-tip-display').forEach(el=>el.style.display=manual?'none':'');if(typeof w.refreshCalculations==='function')w.refreshCalculations()};
+    const dMode=doc.getElementById('discountMode');
+    if(dMode)dMode.onchange=()=>{const input=doc.getElementById('sharedTechDiscount');if(input)input.placeholder=dMode.value==='percent'?'例如 15':'例如 8';if(typeof w.refreshCalculations==='function')w.refreshCalculations()};
     doc.querySelectorAll('.tech-service-input,#sharedTechDiscount,.manual-tip-input').forEach(el=>el.oninput=()=>{if(typeof w.refreshCalculations==='function')w.refreshCalculations()});
     if(typeof w.refreshCalculations==='function')w.refreshCalculations();
   };
-  w.currentParts=function(){const parts=[...doc.querySelectorAll('.tech-service-input')].map(el=>({tech:el.dataset.tech,gross:Number(el.value||0),discount:0,amount:Number(el.value||0)}));const discount=Math.max(0,Number(doc.getElementById('sharedTechDiscount')?.value||0));if(parts.length&&discount>0){const total=parts.reduce((s,p)=>s+p.gross,0);let used=0;parts.forEach((p,i)=>{const d=i===parts.length-1?Math.min(p.gross,discount-used):(total>0?Math.min(p.gross,discount*p.gross/total):0);p.discount=d;p.amount=Math.max(0,p.gross-d);used+=d})}return parts};
+  w.currentParts=function(){
+    const parts=[...doc.querySelectorAll('.tech-service-input')].map(el=>({tech:el.dataset.tech,gross:Number(el.value||0),discount:0,amount:Number(el.value||0)}));
+    const discount=Math.max(0,Number(doc.getElementById('sharedTechDiscount')?.value||0));
+    if(parts.length&&discount>0){
+      if(discountMode()==='percent'){
+        const rate=Math.min(100,discount)/100;
+        parts.forEach(p=>{p.discount=p.gross*rate;p.amount=Math.max(0,p.gross-p.discount)});
+      }else{
+        const total=parts.reduce((s,p)=>s+p.gross,0);let used=0;
+        parts.forEach((p,i)=>{const d=i===parts.length-1?Math.min(p.gross,discount-used):(total>0?Math.min(p.gross,discount*p.gross/total):0);p.discount=d;p.amount=Math.max(0,p.gross-d);used+=d});
+      }
+    }
+    return parts;
+  };
   w.refreshCalculations=function(){
     const result=originalRefreshCalculations.apply(w,arguments);
     if(tipMode()==='store10'){
