@@ -10,7 +10,7 @@
 <style>html,body{margin:0;width:100%;height:100%;background:#f7f5f2}#app{border:0;width:100%;height:100vh;display:block}</style>
 </head>
 <body>
-<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260825-discountpreset2"></iframe>
+<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260825-discountaddfix3"></iframe>
 <script>
 const app=document.getElementById('app');
 function getDoc(){try{return app.contentDocument||app.contentWindow.document}catch(e){return null}}
@@ -112,8 +112,24 @@ function installSharedDiscount(){
       const expected=Math.max(0,Math.round((paid-service)*100)/100);const entered=Object.values(manualTips()).reduce((s,v)=>s+Number(v||0),0);if(Math.abs(entered-expected)>0.001)return alert('手動 Tips 合計必須等於總 Tips $'+expected.toFixed(2));
     }
     if(discountMode()!=='amount' || tipMode()==='store10'){
+      const techs=typeof w.selectedTechs==='function'?w.selectedTechs():[];
+      const date=doc.getElementById('iDate')?.value||'';
+      if(!date||!techs.length)return alert('請選日期和美甲師');
+      if(!gross)return alert('請輸入每位美甲師原服務金額');
+      if(!paid)return alert('請輸入付款方式金額');
+      if(parts.some(p=>p.discount>p.gross))return alert('折扣不能大於該美甲師服務金額');
+      if(service>paid+0.001)return alert('付款總額不能低於折後服務金額 $'+service.toFixed(2));
       const modeNow=tipMode();
-      return w.eval(`(()=>{const mode='${modeNow}',techs=selectedTechs(),parts=currentParts(),gross=parts.reduce((s,p)=>s+p.gross,0),service=parts.reduce((s,p)=>s+p.amount,0),paid=paymentTotal(),adjust=num(iAdjust.value);if(!iDate.value||!techs.length)return alert('請選日期和美甲師');if(!gross)return alert('請輸入每位美甲師原服務金額');if(!paid)return alert('請輸入付款方式金額');if(parts.some(p=>p.discount>p.gross))return alert('折扣不能大於該美甲師服務金額');if(service>paid+0.001)return alert('付款總額不能低於折後服務金額 $'+service.toFixed(2));const tips=mode==='store10'?Math.round(gross*0.10):Math.max(0,Math.round((paid-service)*100)/100),splits=splitTips(tips,parts);incomes.unshift({id:crypto.randomUUID(),date:iDate.value,tech:techs.join(' + '),techs,techSplits:splits,amount:service,grossAmount:gross,discountTotal:gross-service,tips,adjust,pay:encodePay(paymentParts()),paidTotal:paid,note:iNote.value.trim(),tipSource:mode==='store10'?'store10':'customer',storeTipAmount:mode==='store10'?tips:0});iAdjust.value=iNote.value=pZelle.value=pCash.value=pCard.value=pGift.value=pKimi.value=pSiang.value='';document.querySelectorAll('#iTech input').forEach(x=>x.checked=false);refreshTechSplit();saveLocal();render();})()`);
+      const tips=modeNow==='store10'?storeTipTotal(parts):Math.max(0,Math.round((paid-service)*100)/100);
+      const splits=w.splitTips(tips,parts);
+      const payParts=typeof w.paymentParts==='function'?w.paymentParts():{};
+      const pay=Object.entries(payParts).filter(([,v])=>Number(v)>0).map(([k,v])=>`${k}:${Number(v)}`).join('|');
+      const entry={id:(w.crypto&&w.crypto.randomUUID)?w.crypto.randomUUID():String(Date.now()),date,tech:techs.join(' + '),techs,techSplits:splits,amount:service,grossAmount:gross,discountTotal:Math.round((gross-service)*100)/100,tips,adjust:Number(doc.getElementById('iAdjust')?.value||0),pay,paidTotal:paid,note:String(doc.getElementById('iNote')?.value||'').trim(),tipSource:modeNow==='store10'?'store10':'customer',storeTipAmount:modeNow==='store10'?tips:0};
+      w.eval(`incomes.unshift(${JSON.stringify(entry)});saveLocal();render();`);
+      ['iAdjust','iNote','pZelle','pCash','pCard','pGift','pKimi','pSiang'].forEach(id=>{const el=doc.getElementById(id);if(el)el.value=''});
+      doc.querySelectorAll('#iTech input').forEach(x=>x.checked=false);
+      w.refreshTechSplit();
+      return;
     }
     return originalAddIncome.apply(w,arguments);
   };
