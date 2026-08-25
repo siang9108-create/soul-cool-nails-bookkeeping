@@ -7,12 +7,14 @@
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="0">
 <title>Soulcool Nails 雲端記帳</title>
-<style>html,body{margin:0;width:100%;height:100%;background:#f7f5f2}#app{border:0;width:100%;height:100vh;display:block}</style>
+<style>html,body{margin:0;width:100%;height:100%;background:#f7f5f2}#app{border:0;width:100%;height:100vh;display:block}#loadingOverlay{position:fixed;inset:0;z-index:100000;background:#f7f5f2;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#222}#loadingSpinner{width:34px;height:34px;border:4px solid #ddd;border-top-color:#222;border-radius:50%;animation:loadingSpin .8s linear infinite}@keyframes loadingSpin{to{transform:rotate(360deg)}}</style>
 </head>
 <body>
+<div id="loadingOverlay"><div id="loadingSpinner"></div><div>Loading...</div></div>
 <iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260825-discountaddfix3"></iframe>
 <script>
 const app=document.getElementById('app');
+const loadingOverlay=document.getElementById('loadingOverlay');
 function getDoc(){try{return app.contentDocument||app.contentWindow.document}catch(e){return null}}
 function installNetworkWarning(){
   const doc=getDoc();if(!doc||!doc.body)return;
@@ -148,7 +150,7 @@ function installSharedDiscount(){
   w.__sharedDiscountInstalled=true;
 }
 function installAll(){installNetworkWarning();installFixedTechNames();installEditablePaymentNames();installSharedDiscount()}
-app.addEventListener('load',installAll);
+app.addEventListener('load',()=>{installAll();if(loadingOverlay)loadingOverlay.style.display='none'});
 window.addEventListener('online',installNetworkWarning);
 window.addEventListener('offline',installNetworkWarning);
 setTimeout(installAll,100);setTimeout(installAll,500);setTimeout(installAll,1200);setInterval(installAll,2000);
