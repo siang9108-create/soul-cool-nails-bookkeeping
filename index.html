@@ -14,6 +14,18 @@
 <script>
 const app=document.getElementById('app');
 function getDoc(){try{return app.contentDocument||app.contentWindow.document}catch(e){return null}}
+function installNetworkWarning(){
+  const doc=getDoc();if(!doc||!doc.body)return;
+  let banner=doc.getElementById('networkOfflineWarning');
+  if(!banner){
+    banner=doc.createElement('div');
+    banner.id='networkOfflineWarning';
+    banner.textContent='⚠️ 網路已斷線，雲端同步暫停';
+    banner.style.cssText='display:none;position:fixed;top:0;left:0;right:0;z-index:99999;background:#c62828;color:#fff;text-align:center;padding:10px 14px;font-weight:800;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.18);padding-top:max(10px,env(safe-area-inset-top));';
+    doc.body.appendChild(banner);
+  }
+  banner.style.display=navigator.onLine?'none':'block';
+}
 function installFixedTechNames(){
   const doc=getDoc();if(!doc)return;const w=app.contentWindow;
   const picker=doc.querySelector('#iTech');if(!picker||picker.dataset.fixedNames==='1')return;
@@ -135,8 +147,11 @@ function installSharedDiscount(){
   };
   w.__sharedDiscountInstalled=true;
 }
-function installAll(){installFixedTechNames();installEditablePaymentNames();installSharedDiscount()}
-app.addEventListener('load',installAll);setTimeout(installAll,100);setTimeout(installAll,500);setTimeout(installAll,1200);setInterval(installAll,2000);
+function installAll(){installNetworkWarning();installFixedTechNames();installEditablePaymentNames();installSharedDiscount()}
+app.addEventListener('load',installAll);
+window.addEventListener('online',installNetworkWarning);
+window.addEventListener('offline',installNetworkWarning);
+setTimeout(installAll,100);setTimeout(installAll,500);setTimeout(installAll,1200);setInterval(installAll,2000);
 </script>
 </body>
 </html>
