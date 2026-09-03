@@ -8,32 +8,35 @@
 <style>html,body{margin:0;width:100%;height:100%;background:#f7f5f2}#host{border:0;width:100%;height:100vh;display:block}</style>
 </head>
 <body>
-<iframe id="host" src="index.html?v=20260902-biweekly2"></iframe>
+<iframe id="host" src="index.html?v=20260902-biweekly3"></iframe>
 <script>
 const host=document.getElementById('host');
-function deepestDocument(){
+function findTechDocument(){
   try{
     let doc=host.contentDocument;if(!doc)return null;
-    for(let i=0;i<4;i++){
-      if(doc.getElementById('tabSummary')||doc.querySelector('nav'))return doc;
-      const f=doc.querySelector('iframe');
-      if(!f||!f.contentDocument)break;
-      doc=f.contentDocument;
+    for(let i=0;i<6;i++){
+      if(doc.getElementById('tabSummary')&&doc.getElementById('tabDetail'))return doc;
+      const frames=[...doc.querySelectorAll('iframe')];
+      let next=null;
+      for(const f of frames){try{const d=f.contentDocument;if(d){if(d.getElementById('tabSummary')&&d.getElementById('tabDetail'))return d;if(!next)next=d}}catch(e){}}
+      if(!next)break;
+      doc=next;
     }
-    return doc;
+    return null;
   }catch(e){return null}
 }
 function money(n){return '$'+Number(n||0).toFixed(2)}
 function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function installForTechApp(doc){
-  if(!doc||doc.getElementById('tabBiweekly'))return true;
+  if(!doc)return false;
+  if(doc.getElementById('tabBiweekly'))return true;
   const tabSummary=doc.getElementById('tabSummary'),tabDetail=doc.getElementById('tabDetail'),summaryPage=doc.getElementById('summaryPage');
   if(!tabSummary||!tabDetail||!summaryPage)return false;
   const tabs=tabSummary.parentElement;
   if(tabs)tabs.style.gridTemplateColumns='repeat(3,1fr)';
   const btn=doc.createElement('button');btn.className='tab';btn.id='tabBiweekly';btn.textContent='兩週結算';tabs.appendChild(btn);
   const page=doc.createElement('section');page.className='page';page.id='biweeklyPage';
-  page.innerHTML=`<div class="card"><h3 style="margin:0 0 8px">兩週結算</h3><div class="two-week-note">固定結算週期：每月 1–15 日、16–月底。</div><div class="actions"><button class="clear" id="bwPrevBtn">← 上一期</button><button class="clear" id="bwNextBtn">下一期 →</button></div><div class="current-day" id="bwPeriodTitle"></div></div><div class="card"><div class="summary"><div class="stat"><span>當期總數累計</span><b id="bwSales">$0.00</b></div><div class="stat"><span>小費累計</span><b id="bwTips">$0.00</b></div><div class="stat"><span>總累計</span><b id="bwAll">$0.00</b></div></div></div><div class="table-wrap"><table><thead><tr><th>日期</th><th>當日總數</th><th>小費總數</th></tr></thead><tbody id="bwRows"></tbody><tfoot><tr><td>兩週累計</td><td id="bwFootSales">$0.00</td><td id="bwFootTips">$0.00</td></tr></tfoot></table></div>`;
+  page.innerHTML=`<div class="card"><div class="period-title">兩週結算</div><div class="two-week-note">固定結算週期：每月 1–15 日、16–月底。</div><div class="actions"><button class="clear" id="bwPrevBtn">← 上一期</button><button class="clear" id="bwNextBtn">下一期 →</button></div><div class="current-day" id="bwPeriodTitle"></div></div><div class="card"><div class="summary"><div class="stat"><span>當期總數累計</span><b id="bwSales">$0.00</b></div><div class="stat"><span>小費累計</span><b id="bwTips">$0.00</b></div><div class="stat"><span>總累計</span><b id="bwAll">$0.00</b></div></div></div><div class="table-wrap"><table><thead><tr><th>日期</th><th>當日總數</th><th>小費總數</th></tr></thead><tbody id="bwRows"></tbody><tfoot><tr><td>兩週累計</td><td id="bwFootSales">$0.00</td><td id="bwFootTips">$0.00</td></tr></tfoot></table></div>`;
   summaryPage.parentElement.insertBefore(page,summaryPage.nextSibling);
   let offset=0;
   function rows(){const out=[];for(let i=1;i<=16;i++){const d=doc.getElementById('sdate'+i),s=doc.getElementById('ssales'+i),t=doc.getElementById('stips'+i);if(d&&d.value)out.push({date:d.value,sales:Number(s?.value||0),tips:Number(t?.value||0)})}return out}
@@ -41,19 +44,14 @@ function installForTechApp(doc){
   function render(){const b=bounds(),r=rows().filter(x=>x.date>=b.start&&x.date<=b.end).sort((x,y)=>x.date.localeCompare(y.date)),sales=r.reduce((n,x)=>n+x.sales,0),tips=r.reduce((n,x)=>n+x.tips,0);doc.getElementById('bwPeriodTitle').textContent=b.start+' ～ '+b.end;doc.getElementById('bwSales').textContent=money(sales);doc.getElementById('bwTips').textContent=money(tips);doc.getElementById('bwAll').textContent=money(sales+tips);doc.getElementById('bwFootSales').textContent=money(sales);doc.getElementById('bwFootTips').textContent=money(tips);doc.getElementById('bwRows').innerHTML=r.length?r.map(x=>`<tr><td>${x.date}</td><td>${money(x.sales)}</td><td>${money(x.tips)}</td></tr>`).join(''):'<tr><td colspan="3">此期間沒有資料</td></tr>'}
   function showBiweekly(){doc.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));doc.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));page.classList.add('active');btn.classList.add('active');render()}
   btn.onclick=showBiweekly;
-  doc.getElementById('bwPrevBtn').onclick=()=>{offset--;render()};doc.getElementById('bwNextBtn').onclick=()=>{offset++;render()};
+  doc.getElementById('bwPrevBtn').onclick=()=>{offset--;render()};
+  doc.getElementById('bwNextBtn').onclick=()=>{offset++;render()};
   const loadBtn=doc.getElementById('loadMainBtn');if(loadBtn)loadBtn.addEventListener('click',()=>setTimeout(render,1200));
   render();return true;
 }
-function installForCloudApp(doc){
-  if(!doc||doc.getElementById('biweekly'))return true;
-  const nav=doc.querySelector('nav'),main=doc.querySelector('main');if(!nav||!main)return false;
-  const btn=doc.createElement('button');btn.textContent='兩週結算';btn.dataset.page='biweekly';nav.appendChild(btn);
-  const section=doc.createElement('section');section.id='biweekly';section.className='page';section.innerHTML='<div class="card"><h3>兩週結算</h3><div class="help">固定結算週期：每月 1–15 日、16–月底。</div><div class="metrics"><div class="metric"><small>服務金額</small><b id="bwService">$0.00</b></div><div class="metric"><small>Tips</small><b id="bwTips2">$0.00</b></div><div class="metric"><small>總收入</small><b id="bwTotal">$0.00</b></div></div></div>';main.appendChild(section);
-  btn.onclick=()=>{doc.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');doc.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));section.classList.add('active')};return true;
-}
-function install(){const doc=deepestDocument();if(!doc)return setTimeout(install,300);if(installForTechApp(doc))return;if(installForCloudApp(doc))return;setTimeout(install,300)}
-host.addEventListener('load',()=>setTimeout(install,500));setTimeout(install,1200);
+function install(){const doc=findTechDocument();if(doc&&installForTechApp(doc))return;setTimeout(install,300)}
+host.addEventListener('load',()=>setTimeout(install,500));
+setTimeout(install,800);
 </script>
 </body>
 </html>
