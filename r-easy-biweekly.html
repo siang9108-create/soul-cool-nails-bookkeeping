@@ -8,36 +8,52 @@
 <style>html,body{margin:0;width:100%;height:100%;background:#f7f5f2}#host{border:0;width:100%;height:100vh;display:block}</style>
 </head>
 <body>
-<iframe id="host" src="index.html?v=20260902-biweekly1"></iframe>
+<iframe id="host" src="index.html?v=20260902-biweekly2"></iframe>
 <script>
 const host=document.getElementById('host');
-function injectBiweekly(){
+function deepestDocument(){
   try{
-    const outer=host.contentDocument;
-    const inner=outer&&outer.getElementById('app');
-    if(!inner)return setTimeout(injectBiweekly,300);
-    const doc=inner.contentDocument;
-    if(!doc||!doc.body)return setTimeout(injectBiweekly,300);
-    if(doc.getElementById('biweekly'))return;
-    const nav=doc.querySelector('nav');
-    const main=doc.querySelector('main');
-    if(!nav||!main)return setTimeout(injectBiweekly,300);
-    const btn=doc.createElement('button');
-    btn.textContent='兩週結算';
-    btn.dataset.page='biweekly';
-    nav.appendChild(btn);
-    const section=doc.createElement('section');
-    section.id='biweekly';section.className='page';
-    section.innerHTML=`<div class="card"><h3>兩週結算</h3><div class="help">固定結算週期：每月 1–15 日、16–月底。此頁只讀取現有資料，不會寫入或刪除 Google Sheet。</div><div class="day-nav"><button id="bwPrev">← 上一期</button><button id="bwNext">下一期 →</button></div><div style="text-align:center;font-weight:900;font-size:18px;margin:10px 0" id="bwTitle"></div></div><div class="card"><div class="metrics"><div class="metric"><small>服務金額</small><b id="bwService">$0.00</b></div><div class="metric"><small>Tips</small><b id="bwTips">$0.00</b></div><div class="metric"><small>總收入</small><b id="bwTotal">$0.00</b></div><div class="metric"><small>筆數</small><b id="bwCount">0</b></div></div></div><div class="card"><h3>付款方式</h3><div class="tablewrap"><table><tbody id="bwPayRows"></tbody></table></div></div><div class="card"><h3>美甲師結算</h3><div class="tablewrap"><table><thead><tr><th>美甲師</th><th>服務金額</th><th>Tips</th><th>總計</th></tr></thead><tbody id="bwTechRows"></tbody></table></div></div>`;
-    main.appendChild(section);
-    btn.onclick=()=>{doc.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');doc.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));section.classList.add('active');};
-    const script=doc.createElement('script');
-    script.textContent=`(function(){let bwOffset=0;function pad(n){return String(n).padStart(2,'0')}function bounds(offset){const now=new Date(),base=new Date(now.getFullYear(),now.getMonth(),now.getDate());let start;if(base.getDate()<=15)start=new Date(base.getFullYear(),base.getMonth(),1);else start=new Date(base.getFullYear(),base.getMonth(),16);while(offset<0){start=start.getDate()===16?new Date(start.getFullYear(),start.getMonth(),1):new Date(start.getFullYear(),start.getMonth()-1,16);offset++}while(offset>0){start=start.getDate()===1?new Date(start.getFullYear(),start.getMonth(),16):new Date(start.getFullYear(),start.getMonth()+1,1);offset--}const end=start.getDate()===1?new Date(start.getFullYear(),start.getMonth(),15):new Date(start.getFullYear(),start.getMonth()+1,0);const f=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());return{start:f(start),end:f(end)}}function renderBW(){const b=bounds(bwOffset),rows=(typeof incomes!=='undefined'?incomes:[]).filter(x=>String(x.date||'')>=b.start&&String(x.date||'')<=b.end);document.getElementById('bwTitle').textContent=b.start+' ～ '+b.end;const service=rows.reduce((s,x)=>s+Number(x.grossAmount??x.amount??0),0),tips=rows.reduce((s,x)=>s+Number(x.tips||0),0),total=rows.reduce((s,x)=>s+(Number(x.paidTotal)||Number(x.amount||0)+Number(x.tips||0)),0);document.getElementById('bwService').textContent='$'+service.toFixed(2);document.getElementById('bwTips').textContent='$'+tips.toFixed(2);document.getElementById('bwTotal').textContent='$'+total.toFixed(2);document.getElementById('bwCount').textContent=String(rows.length);const pay={};rows.forEach(x=>{const p=typeof parsePay==='function'?parsePay(x):{};Object.entries(p).forEach(([k,v])=>pay[k]=(pay[k]||0)+Number(v||0))});document.getElementById('bwPayRows').innerHTML=Object.entries(pay).filter(([,v])=>v).map(([k,v])=>'<tr><td>'+k+'</td><td><b>$'+v.toFixed(2)+'</b></td></tr>').join('')||'<tr><td colspan="2">此期間沒有付款資料</td></tr>';const tech={};rows.forEach(x=>(typeof splitsOf==='function'?splitsOf(x):[]).forEach(s=>{const k=String(s.tech||'').trim();if(!k)return;tech[k]??={service:0,tips:0};tech[k].service+=Number(s.gross??s.amount??0);tech[k].tips+=Number(s.tip||0)}));document.getElementById('bwTechRows').innerHTML=Object.entries(tech).sort((a,b)=>a[0].localeCompare(b[0])).map(([k,v])=>'<tr><td><b>'+k+'</b></td><td>$'+v.service.toFixed(2)+'</td><td>$'+v.tips.toFixed(2)+'</td><td><b>$'+(v.service+v.tips).toFixed(2)+'</b></td></tr>').join('')||'<tr><td colspan="4">此期間沒有資料</td></tr>'}document.getElementById('bwPrev').onclick=()=>{bwOffset--;renderBW()};document.getElementById('bwNext').onclick=()=>{bwOffset++;renderBW()};window.renderBiweekly=renderBW;const oldRender=typeof render==='function'?render:null;if(oldRender)render=function(){const r=oldRender.apply(this,arguments);renderBW();return r};renderBW()})();`;
-    doc.body.appendChild(script);
-  }catch(e){setTimeout(injectBiweekly,500)}
+    let doc=host.contentDocument;if(!doc)return null;
+    for(let i=0;i<4;i++){
+      if(doc.getElementById('tabSummary')||doc.querySelector('nav'))return doc;
+      const f=doc.querySelector('iframe');
+      if(!f||!f.contentDocument)break;
+      doc=f.contentDocument;
+    }
+    return doc;
+  }catch(e){return null}
 }
-host.addEventListener('load',()=>setTimeout(injectBiweekly,500));
-setTimeout(injectBiweekly,1200);
+function money(n){return '$'+Number(n||0).toFixed(2)}
+function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function installForTechApp(doc){
+  if(!doc||doc.getElementById('tabBiweekly'))return true;
+  const tabSummary=doc.getElementById('tabSummary'),tabDetail=doc.getElementById('tabDetail'),summaryPage=doc.getElementById('summaryPage');
+  if(!tabSummary||!tabDetail||!summaryPage)return false;
+  const tabs=tabSummary.parentElement;
+  if(tabs)tabs.style.gridTemplateColumns='repeat(3,1fr)';
+  const btn=doc.createElement('button');btn.className='tab';btn.id='tabBiweekly';btn.textContent='兩週結算';tabs.appendChild(btn);
+  const page=doc.createElement('section');page.className='page';page.id='biweeklyPage';
+  page.innerHTML=`<div class="card"><h3 style="margin:0 0 8px">兩週結算</h3><div class="two-week-note">固定結算週期：每月 1–15 日、16–月底。</div><div class="actions"><button class="clear" id="bwPrevBtn">← 上一期</button><button class="clear" id="bwNextBtn">下一期 →</button></div><div class="current-day" id="bwPeriodTitle"></div></div><div class="card"><div class="summary"><div class="stat"><span>當期總數累計</span><b id="bwSales">$0.00</b></div><div class="stat"><span>小費累計</span><b id="bwTips">$0.00</b></div><div class="stat"><span>總累計</span><b id="bwAll">$0.00</b></div></div></div><div class="table-wrap"><table><thead><tr><th>日期</th><th>當日總數</th><th>小費總數</th></tr></thead><tbody id="bwRows"></tbody><tfoot><tr><td>兩週累計</td><td id="bwFootSales">$0.00</td><td id="bwFootTips">$0.00</td></tr></tfoot></table></div>`;
+  summaryPage.parentElement.insertBefore(page,summaryPage.nextSibling);
+  let offset=0;
+  function rows(){const out=[];for(let i=1;i<=16;i++){const d=doc.getElementById('sdate'+i),s=doc.getElementById('ssales'+i),t=doc.getElementById('stips'+i);if(d&&d.value)out.push({date:d.value,sales:Number(s?.value||0),tips:Number(t?.value||0)})}return out}
+  function bounds(){const a=rows().sort((x,y)=>x.date.localeCompare(y.date)),base=a.length?a[a.length-1].date:fmt(new Date()),p=base.split('-').map(Number);let start=new Date(p[0],p[1]-1,p[2]<=15?1:16);if(offset<0){for(let i=0;i<Math.abs(offset);i++)start=start.getDate()===16?new Date(start.getFullYear(),start.getMonth(),1):new Date(start.getFullYear(),start.getMonth()-1,16)}else{for(let i=0;i<offset;i++)start=start.getDate()===1?new Date(start.getFullYear(),start.getMonth(),16):new Date(start.getFullYear(),start.getMonth()+1,1)}const end=start.getDate()===1?new Date(start.getFullYear(),start.getMonth(),15):new Date(start.getFullYear(),start.getMonth()+1,0);return{start:fmt(start),end:fmt(end)}}
+  function render(){const b=bounds(),r=rows().filter(x=>x.date>=b.start&&x.date<=b.end).sort((x,y)=>x.date.localeCompare(y.date)),sales=r.reduce((n,x)=>n+x.sales,0),tips=r.reduce((n,x)=>n+x.tips,0);doc.getElementById('bwPeriodTitle').textContent=b.start+' ～ '+b.end;doc.getElementById('bwSales').textContent=money(sales);doc.getElementById('bwTips').textContent=money(tips);doc.getElementById('bwAll').textContent=money(sales+tips);doc.getElementById('bwFootSales').textContent=money(sales);doc.getElementById('bwFootTips').textContent=money(tips);doc.getElementById('bwRows').innerHTML=r.length?r.map(x=>`<tr><td>${x.date}</td><td>${money(x.sales)}</td><td>${money(x.tips)}</td></tr>`).join(''):'<tr><td colspan="3">此期間沒有資料</td></tr>'}
+  function showBiweekly(){doc.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));doc.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));page.classList.add('active');btn.classList.add('active');render()}
+  btn.onclick=showBiweekly;
+  doc.getElementById('bwPrevBtn').onclick=()=>{offset--;render()};doc.getElementById('bwNextBtn').onclick=()=>{offset++;render()};
+  const loadBtn=doc.getElementById('loadMainBtn');if(loadBtn)loadBtn.addEventListener('click',()=>setTimeout(render,1200));
+  render();return true;
+}
+function installForCloudApp(doc){
+  if(!doc||doc.getElementById('biweekly'))return true;
+  const nav=doc.querySelector('nav'),main=doc.querySelector('main');if(!nav||!main)return false;
+  const btn=doc.createElement('button');btn.textContent='兩週結算';btn.dataset.page='biweekly';nav.appendChild(btn);
+  const section=doc.createElement('section');section.id='biweekly';section.className='page';section.innerHTML='<div class="card"><h3>兩週結算</h3><div class="help">固定結算週期：每月 1–15 日、16–月底。</div><div class="metrics"><div class="metric"><small>服務金額</small><b id="bwService">$0.00</b></div><div class="metric"><small>Tips</small><b id="bwTips2">$0.00</b></div><div class="metric"><small>總收入</small><b id="bwTotal">$0.00</b></div></div></div>';main.appendChild(section);
+  btn.onclick=()=>{doc.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');doc.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));section.classList.add('active')};return true;
+}
+function install(){const doc=deepestDocument();if(!doc)return setTimeout(install,300);if(installForTechApp(doc))return;if(installForCloudApp(doc))return;setTimeout(install,300)}
+host.addEventListener('load',()=>setTimeout(install,500));setTimeout(install,1200);
 </script>
 </body>
 </html>
