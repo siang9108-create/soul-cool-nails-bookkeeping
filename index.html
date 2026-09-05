@@ -32,7 +32,7 @@ function installFixedTechNames(){
   const doc=getDoc();if(!doc)return;const w=app.contentWindow;
   const picker=doc.querySelector('#iTech');if(!picker||picker.dataset.fixedNames==='1')return;
   picker.dataset.fixedNames='1';
-  const names=['Kimi','Zoey','Cherries','Cici','Tina','Eva','Betty','Raina'];
+  const names=['Kimi','Zoey','Cherries','Cici','Eva','Betty','Raina','Katie'];
   picker.innerHTML=names.map(name=>`<label class="tech-choice"><input type="checkbox" value="${name}">${name}</label>`).join('');
   picker.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.addEventListener('change',()=>{if(typeof w.refreshTechSplit==='function')w.refreshTechSplit()}));
 }
