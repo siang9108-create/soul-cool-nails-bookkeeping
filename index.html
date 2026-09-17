@@ -1,159 +1,311 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="pragma" content="no-cache">
-<meta http-equiv="expires" content="0">
-<title>Soulcool Nails 雲端記帳</title>
-<style>html,body{margin:0;width:100%;height:100%;background:#f7f5f2}#app{border:0;width:100%;height:100vh;display:block}#loadingOverlay{position:fixed;inset:0;z-index:100000;background:#f7f5f2;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#222}#loadingSpinner{width:34px;height:34px;border:4px solid #ddd;border-top-color:#222;border-radius:50%;animation:loadingSpin .8s linear infinite}@keyframes loadingSpin{to{transform:rotate(360deg)}}</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Soulcool DM is a simple, modern salon management app for appointments, checkout, employees, revenue, and reports.">
+  <meta name="theme-color" content="#f7f3ff">
+  <title>Soulcool DM — Salon Management, Made Simple</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #29243a;
+      --muted: #716b80;
+      --purple: #8f5ceb;
+      --purple-deep: #7040cf;
+      --lavender: #b79ce9;
+      --lavender-soft: #eee5ff;
+      --surface: rgba(255, 255, 255, 0.82);
+      --line: rgba(143, 92, 235, 0.18);
+      --shadow: 0 22px 65px rgba(94, 56, 153, 0.14);
+      --radius-lg: 32px;
+      --radius-md: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 8%, rgba(196, 166, 255, 0.32), transparent 28rem),
+        radial-gradient(circle at 92% 25%, rgba(228, 209, 255, 0.45), transparent 27rem),
+        linear-gradient(180deg, #fbf9ff 0%, #f6f1ff 58%, #fcfbff 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    .shell { width: min(1120px, calc(100% - 40px)); margin-inline: auto; }
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding-top: env(safe-area-inset-top);
+      background: rgba(250, 247, 255, 0.78);
+      border-bottom: 1px solid rgba(143, 92, 235, 0.1);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .nav {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .brand {
+      color: #9f7cde;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 27px;
+      font-style: italic;
+      letter-spacing: -0.6px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .nav-note { color: var(--muted); font-size: 14px; font-weight: 600; letter-spacing: 0.04em; }
+    .hero {
+      min-height: 680px;
+      padding-block: 92px 76px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+      align-items: center;
+      gap: clamp(48px, 8vw, 100px);
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      color: var(--purple-deep);
+      font-size: 13px;
+      font-weight: 750;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before { width: 28px; height: 1px; content: ""; background: var(--lavender); }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      max-width: 720px;
+      margin-bottom: 24px;
+      font-size: clamp(48px, 7vw, 78px);
+      line-height: 1.02;
+      letter-spacing: -0.055em;
+    }
+    .hero-copy {
+      max-width: 660px;
+      margin-bottom: 34px;
+      color: var(--muted);
+      font-size: clamp(18px, 2vw, 21px);
+    }
+    .button {
+      min-height: 54px;
+      padding: 0 25px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      background: linear-gradient(135deg, #9a69ef, #7746d8);
+      border: 0;
+      border-radius: 18px;
+      box-shadow: 0 14px 32px rgba(119, 70, 216, 0.27);
+      font-size: 16px;
+      font-weight: 750;
+      text-decoration: none;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+    .button:hover { transform: translateY(-2px); box-shadow: 0 18px 38px rgba(119, 70, 216, 0.32); }
+    .product-card {
+      position: relative;
+      width: min(100%, 430px);
+      margin-inline: auto;
+      padding: 20px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.92);
+      border-radius: 42px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+    .product-card::after {
+      position: absolute;
+      inset: auto -60px -70px auto;
+      width: 210px;
+      height: 210px;
+      content: "";
+      background: rgba(183, 156, 233, 0.18);
+      border-radius: 50%;
+      filter: blur(4px);
+    }
+    .app-window {
+      position: relative;
+      z-index: 1;
+      padding: 25px;
+      background: linear-gradient(180deg, #faf7ff, #f5efff);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+    }
+    .app-head { margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; gap: 18px; }
+    .mini-brand { color: #a889dc; font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 18px; }
+    .store-pill {
+      padding: 7px 12px;
+      color: #796d8c;
+      background: white;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 7px 18px rgba(80, 54, 128, 0.08);
+    }
+    .app-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .app-tile {
+      min-height: 94px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      color: #534b62;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .app-tile strong { color: var(--purple); font-size: 21px; }
+    .app-tile.primary { color: white; background: linear-gradient(135deg, #9a69ef, #8150df); }
+    .app-tile.primary strong { color: white; }
+    .app-tile.wide { grid-column: 1 / -1; min-height: 76px; }
+    .features { padding-block: 92px; }
+    .section-heading { max-width: 650px; margin: 0 auto 46px; text-align: center; }
+    h2 { margin-bottom: 14px; font-size: clamp(34px, 5vw, 50px); line-height: 1.12; letter-spacing: -0.04em; }
+    .section-heading p { color: var(--muted); font-size: 18px; }
+    .feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+    .feature-card {
+      min-height: 220px;
+      padding: 26px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      box-shadow: 0 15px 36px rgba(99, 62, 154, 0.07);
+    }
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      margin-bottom: 30px;
+      display: grid;
+      place-items: center;
+      color: var(--purple);
+      background: var(--lavender-soft);
+      border-radius: 14px;
+      font-size: 20px;
+    }
+    h3 { margin-bottom: 8px; font-size: 19px; }
+    .feature-card p { margin-bottom: 0; color: var(--muted); font-size: 15px; }
+    .cta { padding-block: 38px 100px; }
+    .cta-panel {
+      padding: clamp(34px, 6vw, 64px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 30px;
+      background: linear-gradient(135deg, rgba(236, 224, 255, 0.96), rgba(255, 255, 255, 0.9));
+      border: 1px solid rgba(143, 92, 235, 0.16);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+    .cta-panel h2 { margin-bottom: 8px; font-size: clamp(30px, 4vw, 44px); }
+    .cta-panel p { margin-bottom: 0; color: var(--muted); }
+    .site-footer {
+      padding: 28px 0 calc(28px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .footer-links { display: flex; gap: 22px; }
+    .footer-links a { text-decoration: none; }
+    .footer-links a:hover { color: var(--purple); }
+    @media (max-width: 820px) {
+      .hero { min-height: auto; padding-block: 68px; grid-template-columns: 1fr; text-align: center; }
+      .eyebrow { justify-content: center; }
+      .hero-copy { margin-inline: auto; }
+      .product-card { width: min(100%, 470px); }
+      .feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 28px, 1120px); }
+      .nav { min-height: 64px; }
+      .brand { font-size: 23px; }
+      .nav-note { display: none; }
+      .hero { padding-block: 52px 62px; gap: 42px; }
+      h1 { font-size: clamp(43px, 14vw, 60px); }
+      .product-card { padding: 12px; border-radius: 30px; }
+      .app-window { padding: 18px; border-radius: 22px; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .feature-card { min-height: 0; }
+      .cta-panel { align-items: stretch; flex-direction: column; text-align: center; }
+      .footer-inner { flex-direction: column; text-align: center; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .button { transition: none; } }
+  </style>
 </head>
 <body>
-<div id="loadingOverlay"><div id="loadingSpinner"></div><div>Loading...</div></div>
-<iframe id="app" src="soulcool_nails_FINAL_fixed_index.html?v=20260825-discountaddfix3"></iframe>
-<script>
-const app=document.getElementById('app');
-const loadingOverlay=document.getElementById('loadingOverlay');
-function getDoc(){try{return app.contentDocument||app.contentWindow.document}catch(e){return null}}
-function installNetworkWarning(){
-  const doc=getDoc();if(!doc||!doc.body)return;
-  let banner=doc.getElementById('networkOfflineWarning');
-  if(!banner){
-    banner=doc.createElement('div');
-    banner.id='networkOfflineWarning';
-    banner.textContent='⚠️ 網路已斷線，雲端同步暫停';
-    banner.style.cssText='display:none;position:fixed;top:0;left:0;right:0;z-index:99999;background:#c62828;color:#fff;text-align:center;padding:10px 14px;font-weight:800;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.18);padding-top:max(10px,env(safe-area-inset-top));';
-    doc.body.appendChild(banner);
-  }
-  banner.style.display=navigator.onLine?'none':'block';
-}
-function installFixedTechNames(){
-  const doc=getDoc();if(!doc)return;const w=app.contentWindow;
-  const picker=doc.querySelector('#iTech');if(!picker||picker.dataset.fixedNames==='1')return;
-  picker.dataset.fixedNames='1';
-  const names=['Kimi','Zoey','Cherries','Cici','Eva','Betty','Raina','Katie'];
-  picker.innerHTML=names.map(name=>`<label class="tech-choice"><input type="checkbox" value="${name}">${name}</label>`).join('');
-  picker.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.addEventListener('change',()=>{if(typeof w.refreshTechSplit==='function')w.refreshTechSplit()}));
-}
-function installEditablePaymentNames(){
-  const doc=getDoc();if(!doc)return;const w=app.contentWindow;
-  const p1=doc.getElementById('pKimi'),p2=doc.getElementById('pSiang');if(!p1||!p2)return;
-  function makeEditable(input,id,placeholder){const box=input.parentElement;if(!box)return;let nameInput=doc.getElementById(id);if(!nameInput){const label=box.querySelector('label');if(!label)return;box.dataset.editablePay='1';label.innerHTML=`<input id="${id}" type="text" autocomplete="off" placeholder="${placeholder}" style="padding:6px 8px;font-size:13px">`;nameInput=doc.getElementById(id)}return nameInput}
-  const n1=makeEditable(p1,'customPayName1','付款名稱 1'),n2=makeEditable(p2,'customPayName2','付款名稱 2');if(!n1||!n2)return;
-  const KEY1='soulcool_custom_pay_name_1',KEY2='soulcool_custom_pay_name_2';
-  if(!n1.dataset.bound){
-    n1.value=localStorage.getItem(KEY1)||n1.value||'';
-    n2.value=localStorage.getItem(KEY2)||n2.value||'';
-    const changed=()=>{localStorage.setItem(KEY1,n1.value.trim());localStorage.setItem(KEY2,n2.value.trim());if(typeof w.render==='function')w.render()};
-    n1.addEventListener('input',changed);n1.addEventListener('change',changed);n2.addEventListener('input',changed);n2.addEventListener('change',changed);
-    n1.dataset.bound=n2.dataset.bound='1';
-  }
-  const payName1=()=>n1.value.trim()||'Kimi';
-  const payName2=()=>n2.value.trim()||'Siang';
-  const parseRawPay=x=>{const out={};const s=String((x&&x.pay)||'');if(s.includes(':'))s.split('|').forEach(part=>{const i=part.lastIndexOf(':');if(i>0){const k=part.slice(0,i),v=Number(part.slice(i+1)||0);out[k]=(out[k]||0)+v}});else if(s)out[s]=(out[s]||0)+Number((x&&x.paidTotal)||((x&&x.amount)||0)+((x&&x.tips)||0));return out};
-  const updatePaymentLabels=()=>{const a=doc.getElementById('dKimi'),b=doc.getElementById('dSiang');if(a){const s=a.parentElement&&a.parentElement.querySelector('small');if(s)s.textContent=payName1()}if(b){const s=b.parentElement&&b.parentElement.querySelector('small');if(s)s.textContent=payName2()}const rows=doc.querySelectorAll('#payRows tr');if(rows[4]&&rows[4].cells[0])rows[4].cells[0].textContent=payName1();if(rows[5]&&rows[5].cells[0])rows[5].cells[0].textContent=payName2();if(payName1()===payName2()&&rows[5])rows[5].style.display='none';else if(rows[5])rows[5].style.display=''};
-  if(!w.__customPaymentAccountingFixed){const oldRender=w.render;w.paymentParts=function(){const out={Zelle:Number(doc.getElementById('pZelle')?.value||0),Cash:Number(doc.getElementById('pCash')?.value||0),Card:Number(doc.getElementById('pCard')?.value||0),'Gift Card':Number(doc.getElementById('pGift')?.value||0)};const add=(k,v)=>{if(v>0)out[k]=(out[k]||0)+v};add('Kimi',Number(p1.value||0));add('Siang',Number(p2.value||0));return out};w.parsePay=function(x){const raw=parseRawPay(x);return {Zelle:Number(raw.Zelle||0),Cash:Number(raw.Cash||0),Card:Number(raw.Card||0),'Gift Card':Number(raw['Gift Card']||0),Kimi:Number(raw.Kimi||0),Siang:Number(raw.Siang||0)}};w.payLabel=function(x){const raw=parseRawPay(x),shown={};const add=(k,v)=>{v=Number(v||0);if(v>0)shown[k]=(shown[k]||0)+v};add('Zelle',raw.Zelle);add('Cash',raw.Cash);add('Card',raw.Card);add('Gift Card',raw['Gift Card']);add(payName1(),raw.Kimi);add(payName2(),raw.Siang);Object.entries(raw).forEach(([k,v])=>{if(!['Zelle','Cash','Card','Gift Card','Kimi','Siang'].includes(k))add(k,v)});return Object.entries(shown).map(([k,v])=>`${k} $${Number(v).toFixed(2)}`).join(' + ')||'-'};if(typeof oldRender==='function')w.render=function(){const r=oldRender.apply(this,arguments);updatePaymentLabels();return r};w.__customPaymentAccountingFixed=true}updatePaymentLabels();
-}
-function installSharedDiscount(){
-  const doc=getDoc();if(!doc)return;const w=app.contentWindow;const rows=doc.getElementById('techSplitRows');if(!rows||w.__sharedDiscountInstalled)return;const original=w.refreshTechSplit;if(typeof original!=='function')return;
-  const originalSplitTips=w.splitTips;
-  const originalAddIncome=w.addIncome;
-  const originalRefreshCalculations=w.refreshCalculations;
-  function tipMode(){return doc.getElementById('tipAllocationMode')?.value||'auto'}
-  function discountMode(){return doc.getElementById('discountMode')?.value||'amount'}
-  function discountRate(){const m=discountMode();return m.startsWith('p')?Number(m.slice(1)||0)/100:0}
-  function manualTips(){const out={};doc.querySelectorAll('.manual-tip-input').forEach(el=>out[el.dataset.tech]=Number(el.value||0));return out}
-  function storeTipTotal(parts){const gross=parts.reduce((s,p)=>s+Number(p.gross||0),0);return Math.round(gross*0.10)}
-  w.splitTips=function(totalTips,parts){
-    if(tipMode()==='manual'){const tips=manualTips();return parts.map(p=>({...p,tip:Number(tips[p.tech]||0)}))}
-    if(tipMode()==='store10')return originalSplitTips(storeTipTotal(parts),parts);
-    return originalSplitTips(totalTips,parts);
-  };
-  w.refreshTechSplit=function(){
-    const names=typeof w.selectedTechs==='function'?w.selectedTechs():[];
-    const box=doc.getElementById('techSplit');
-    const oldGross={},oldManual=manualTips();
-    doc.querySelectorAll('.tech-service-input').forEach(el=>oldGross[el.dataset.tech]=el.value);
-    const oldDiscount=doc.getElementById('sharedTechDiscount')?.value||'';
-    const oldDiscountMode=discountMode();
-    const oldMode=tipMode();
-    if(!names.length){if(box)box.classList.remove('active');rows.innerHTML='';if(typeof w.refreshCalculations==='function')w.refreshCalculations();return}
-    if(box)box.classList.add('active');
-    rows.innerHTML=`<div style="margin-bottom:12px"><label style="display:block;font-weight:700;margin-bottom:6px">Tips 分配</label><select id="tipAllocationMode" style="width:100%;padding:10px;border-radius:10px"><option value="auto" ${oldMode==='auto'?'selected':''}>自動比例</option><option value="manual" ${oldMode==='manual'?'selected':''}>手動輸入</option><option value="store10" ${oldMode==='store10'?'selected':''}>店家補 10% Tips</option></select></div>`+
-      names.map(name=>`<div class="split-row"><b>${name}</b><input class="tech-service-input" data-tech="${name}" type="number" placeholder="服務金額" value="${oldGross[name]||''}"><span class="split-net" data-net-for="${name}"></span><span class="split-tip auto-tip-display" data-tip-for="${name}" style="${oldMode==='manual'?'display:none':''}"></span><input class="manual-tip-input" data-tech="${name}" type="number" min="0" step="0.01" placeholder="Tips" value="${oldManual[name]??''}" style="${oldMode==='manual'?'':'display:none'}"></div>`).join('')+
-      `<div style="margin-top:12px"><label style="display:block;font-weight:700;margin-bottom:6px">折扣比例</label><select id="discountMode" style="width:100%;padding:10px;border-radius:10px;margin-bottom:8px"><option value="amount" ${oldDiscountMode==='amount'?'selected':''}>$ 固定金額折扣</option><option value="p5" ${oldDiscountMode==='p5'?'selected':''}>5% off</option><option value="p10" ${oldDiscountMode==='p10'?'selected':''}>10% off</option><option value="p15" ${oldDiscountMode==='p15'?'selected':''}>15% off</option><option value="p20" ${oldDiscountMode==='p20'?'selected':''}>20% off</option></select><div id="fixedDiscountBox" style="${oldDiscountMode==='amount'?'':'display:none'}"><label style="display:block;font-weight:700;margin-bottom:6px">折扣金額</label><input id="sharedTechDiscount" type="number" min="0" step="0.01" placeholder="例如 8" value="${oldDiscount}" style="width:100%"></div></div>`;
-    const mode=doc.getElementById('tipAllocationMode');
-    if(mode)mode.onchange=()=>{const manual=mode.value==='manual';doc.querySelectorAll('.manual-tip-input').forEach(el=>el.style.display=manual?'':'none');doc.querySelectorAll('.auto-tip-display').forEach(el=>el.style.display=manual?'none':'');if(typeof w.refreshCalculations==='function')w.refreshCalculations()};
-    const dMode=doc.getElementById('discountMode');
-    if(dMode)dMode.onchange=()=>{const box=doc.getElementById('fixedDiscountBox');if(box)box.style.display=dMode.value==='amount'?'':'none';if(typeof w.refreshCalculations==='function')w.refreshCalculations()};
-    doc.querySelectorAll('.tech-service-input,#sharedTechDiscount,.manual-tip-input').forEach(el=>el.oninput=()=>{if(typeof w.refreshCalculations==='function')w.refreshCalculations()});
-    if(typeof w.refreshCalculations==='function')w.refreshCalculations();
-  };
-  w.currentParts=function(){
-    const parts=[...doc.querySelectorAll('.tech-service-input')].map(el=>({tech:el.dataset.tech,gross:Number(el.value||0),discount:0,amount:Number(el.value||0)}));
-    if(!parts.length)return parts;
-    const rate=discountRate();
-    if(rate>0){
-      parts.forEach(p=>{p.discount=Math.round(p.gross*rate*100)/100;p.amount=Math.max(0,Math.round((p.gross-p.discount)*100)/100)});
-      return parts;
-    }
-    const discount=Math.max(0,Number(doc.getElementById('sharedTechDiscount')?.value||0));
-    if(discount>0){const total=parts.reduce((s,p)=>s+p.gross,0);let used=0;parts.forEach((p,i)=>{const d=i===parts.length-1?Math.min(p.gross,discount-used):(total>0?Math.min(p.gross,discount*p.gross/total):0);p.discount=d;p.amount=Math.max(0,p.gross-d);used+=d})}
-    return parts;
-  };
-  w.refreshCalculations=function(){
-    const result=originalRefreshCalculations.apply(w,arguments);
-    const parts=w.currentParts();
-    const gross=parts.reduce((s,p)=>s+Number(p.gross||0),0);
-    const service=parts.reduce((s,p)=>s+Number(p.amount||0),0);
-    const discount=parts.reduce((s,p)=>s+Number(p.discount||0),0);
-    const paid=typeof w.paymentTotal==='function'?Number(w.paymentTotal()||0):0;
-    let tips=Math.max(0,Math.round((paid-service)*100)/100);
-    if(tipMode()==='store10')tips=storeTipTotal(parts);
-    const splits=tipMode()==='manual'?w.splitTips(tips,parts):originalSplitTips(tips,parts);
-    splits.forEach(p=>{const tipEl=doc.querySelector(`[data-tip-for="${p.tech}"]`),netEl=doc.querySelector(`[data-net-for="${p.tech}"]`);if(tipEl)tipEl.textContent='Tip $'+Number(p.tip||0).toFixed(2);if(netEl)netEl.textContent='折後 $'+Number(p.amount||0).toFixed(2)});
-    const preview=doc.getElementById('tipPreview');
-    if(preview){preview.textContent='原服務：$'+gross.toFixed(2)+'｜折扣：$'+discount.toFixed(2)+'｜服務營收：$'+service.toFixed(2)+'｜'+(tipMode()==='store10'?'店家補 Tips：$':'Tips：$')+tips.toFixed(2)}
-    return result;
-  };
-  w.addIncome=function(){
-    const parts=w.currentParts();
-    const gross=parts.reduce((s,p)=>s+Number(p.gross||0),0);
-    const service=parts.reduce((s,p)=>s+Number(p.amount||0),0);
-    const paid=typeof w.paymentTotal==='function'?Number(w.paymentTotal()||0):0;
-    if(tipMode()==='manual'){
-      const expected=Math.max(0,Math.round((paid-service)*100)/100);const entered=Object.values(manualTips()).reduce((s,v)=>s+Number(v||0),0);if(Math.abs(entered-expected)>0.001)return alert('手動 Tips 合計必須等於總 Tips $'+expected.toFixed(2));
-    }
-    if(discountMode()!=='amount' || tipMode()==='store10'){
-      const techs=typeof w.selectedTechs==='function'?w.selectedTechs():[];
-      const date=doc.getElementById('iDate')?.value||'';
-      if(!date||!techs.length)return alert('請選日期和美甲師');
-      if(!gross)return alert('請輸入每位美甲師原服務金額');
-      if(!paid)return alert('請輸入付款方式金額');
-      if(parts.some(p=>p.discount>p.gross))return alert('折扣不能大於該美甲師服務金額');
-      if(service>paid+0.001)return alert('付款總額不能低於折後服務金額 $'+service.toFixed(2));
-      const modeNow=tipMode();
-      const tips=modeNow==='store10'?storeTipTotal(parts):Math.max(0,Math.round((paid-service)*100)/100);
-      const splits=w.splitTips(tips,parts);
-      const payParts=typeof w.paymentParts==='function'?w.paymentParts():{};
-      const pay=Object.entries(payParts).filter(([,v])=>Number(v)>0).map(([k,v])=>`${k}:${Number(v)}`).join('|');
-      const entry={id:(w.crypto&&w.crypto.randomUUID)?w.crypto.randomUUID():String(Date.now()),date,tech:techs.join(' + '),techs,techSplits:splits,amount:service,grossAmount:gross,discountTotal:Math.round((gross-service)*100)/100,tips,adjust:Number(doc.getElementById('iAdjust')?.value||0),pay,paidTotal:paid,note:String(doc.getElementById('iNote')?.value||'').trim(),tipSource:modeNow==='store10'?'store10':'customer',storeTipAmount:modeNow==='store10'?tips:0};
-      w.eval(`incomes.unshift(${JSON.stringify(entry)});saveLocal();render();`);
-      ['iAdjust','iNote','pZelle','pCash','pCard','pGift','pKimi','pSiang'].forEach(id=>{const el=doc.getElementById(id);if(el)el.value=''});
-      doc.querySelectorAll('#iTech input').forEach(x=>x.checked=false);
-      w.refreshTechSplit();
-      return;
-    }
-    return originalAddIncome.apply(w,arguments);
-  };
-  w.__sharedDiscountInstalled=true;
-}
-function installAll(){installNetworkWarning();installFixedTechNames();installEditablePaymentNames();installSharedDiscount()}
-app.addEventListener('load',()=>{installAll();if(loadingOverlay)loadingOverlay.style.display='none'});
-window.addEventListener('online',installNetworkWarning);
-window.addEventListener('offline',installNetworkWarning);
-setTimeout(installAll,100);setTimeout(installAll,500);setTimeout(installAll,1200);setInterval(installAll,2000);
-</script>
+  <header class="site-header">
+    <nav class="shell nav" aria-label="Primary navigation">
+      <a class="brand" href="/" aria-label="Soulcool DM home">Soulcool DM</a>
+      <span class="nav-note">Salon management for modern teams</span>
+    </nav>
+  </header>
+  <main>
+    <section class="shell hero">
+      <div class="hero-content">
+        <span class="eyebrow">Soulcool DM</span>
+        <h1>Salon Management,<br>Made Simple</h1>
+        <p class="hero-copy">Manage appointments, checkout, employees, daily revenue, and reports—all in one place.</p>
+        <a class="button" href="https://testflight.apple.com/" target="_blank" rel="noopener noreferrer">Test with TestFlight</a>
+      </div>
+      <div class="product-card" aria-label="Soulcool DM app overview illustration">
+        <div class="app-window">
+          <div class="app-head"><span class="mini-brand">Soulcool DM</span><span class="store-pill">Your salon</span></div>
+          <div class="app-grid">
+            <div class="app-tile"><span>Appointments</span><strong>12</strong></div>
+            <div class="app-tile"><span>Today’s revenue</span><strong>$1,240</strong></div>
+            <div class="app-tile primary"><span>Checkout</span><strong>Ready</strong></div>
+            <div class="app-tile primary"><span>Team</span><strong>8</strong></div>
+            <div class="app-tile wide"><span>Store overview</span><strong>Everything in balance</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="features" id="features">
+      <div class="shell">
+        <div class="section-heading">
+          <span class="eyebrow">Built for your daily flow</span>
+          <h2>Everything your salon needs.</h2>
+          <p>Clear tools for owners and technicians, designed around the way beauty teams actually work.</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card"><div class="feature-icon" aria-hidden="true">◷</div><h3>Appointments</h3><p>See the day clearly with staff-based schedules and appointment details.</p></article>
+          <article class="feature-card"><div class="feature-icon" aria-hidden="true">✓</div><h3>Checkout</h3><p>Handle services, discounts, tips, and split payments in one focused flow.</p></article>
+          <article class="feature-card"><div class="feature-icon" aria-hidden="true">◎</div><h3>Employee Management</h3><p>Manage employee access, status, PINs, and salon roles securely.</p></article>
+          <article class="feature-card"><div class="feature-icon" aria-hidden="true">↗</div><h3>Daily Reports</h3><p>Review daily service revenue and tips without manual calculations.</p></article>
+          <article class="feature-card"><div class="feature-icon" aria-hidden="true">▦</div><h3>Store Overview</h3><p>Keep revenue, team activity, and settlement summaries easy to understand.</p></article>
+          <article class="feature-card"><div class="feature-icon" aria-hidden="true">#</div><h3>Store Code &amp; Employee Join</h3><p>Invite employees with your store code and get the team started quickly.</p></article>
+        </div>
+      </div>
+    </section>
+    <section class="shell cta">
+      <div class="cta-panel">
+        <div><h2>Ready for a simpler salon day?</h2><p>Try Soulcool DM on iPhone with TestFlight.</p></div>
+        <a class="button" href="https://testflight.apple.com/" target="_blank" rel="noopener noreferrer">Test with TestFlight</a>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <span>© <span id="year"></span> Soulcool DM</span>
+      <div class="footer-links"><a href="/privacy/">Privacy Policy</a><a href="/support/">Support</a></div>
+    </div>
+  </footer>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
