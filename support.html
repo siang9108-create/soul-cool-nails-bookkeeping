@@ -57,7 +57,10 @@
     p { margin: 0; color: var(--muted); }
     .contact-card { margin-top: 36px; padding: clamp(28px, 6vw, 48px); text-align: center; background: linear-gradient(135deg, rgba(236, 224, 255, 0.96), rgba(255, 255, 255, 0.9)); border: 1px solid var(--line); border-radius: 30px; box-shadow: var(--shadow); }
     .contact-card h2 { margin-bottom: 10px; font-size: 28px; }
-    .contact-status { margin-top: 18px; color: var(--purple-deep); font-weight: 750; }
+    .app-support { margin: 0 0 36px; text-align: left; }
+    .app-support p + p { margin-top: 12px; }
+    .support-email { color: var(--ink); font-weight: 750; }
+    .support-email a { color: var(--purple-deep); text-underline-offset: 3px; overflow-wrap: anywhere; }
     .button { min-height: 52px; margin-top: 28px; padding: 0 24px; display: inline-flex; align-items: center; justify-content: center; color: white; background: linear-gradient(135deg, #9a69ef, #7746d8); border-radius: 17px; box-shadow: 0 14px 32px rgba(119, 70, 216, 0.24); font-weight: 750; text-decoration: none; }
     .site-footer { padding: 28px 0 calc(28px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
     .footer-inner { display: flex; justify-content: space-between; gap: 22px; }
@@ -87,6 +90,14 @@
     <div class="eyebrow">Soulcool DM</div>
     <h1>Support</h1>
     <p class="intro">Need help? Soulcool DM Support can assist with common setup, access, and daily salon management questions.</p>
+    <section class="contact-card app-support" aria-labelledby="app-support-title">
+      <h2 id="app-support-title">Soulcool Daily Multi Support</h2>
+      <p>Need help with Soulcool Daily Multi?</p>
+      <p>For questions, technical support, or account assistance, please contact us:</p>
+      <p class="support-email">Email: <a href="mailto:siang91082026@outlook.com">siang91082026@outlook.com</a></p>
+      <p>We will respond to support requests as soon as possible.</p>
+      <a class="button" href="/">Back to home</a>
+    </section>
     <section class="support-grid" aria-label="Common support topics">
       <article class="support-card"><div class="support-icon" aria-hidden="true">#</div><h2>Store registration / Store Code</h2><p>Help with creating a store and sharing the correct employee join code.</p></article>
       <article class="support-card"><div class="support-icon" aria-hidden="true">↗</div><h2>Owner &amp; employee login</h2><p>Guidance for owner sign-in, employee joining, and account access.</p></article>
@@ -96,12 +107,6 @@
       <article class="support-card"><div class="support-icon" aria-hidden="true">◎</div><h2>Employee management</h2><p>Help adding, activating, deactivating, or managing employees.</p></article>
       <article class="support-card"><div class="support-icon" aria-hidden="true">↗</div><h2>Reports / Store overview</h2><p>Guidance for daily reports, revenue summaries, and store data.</p></article>
       <article class="support-card"><div class="support-icon" aria-hidden="true">↓</div><h2>TestFlight installation</h2><p>Help installing and opening the current Soulcool DM test build.</p></article>
-    </section>
-    <section class="contact-card">
-      <h2>Contact</h2>
-      <p>We’re preparing a dedicated support contact for Soulcool DM.</p>
-      <p class="contact-status">Support contact coming soon</p>
-      <a class="button" href="/">Back to home</a>
     </section>
   </main>
   <footer class="site-footer">
